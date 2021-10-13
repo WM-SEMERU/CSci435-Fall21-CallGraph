@@ -1,17 +1,23 @@
 import re
 
-lines = []
-
-
 with open('test.py','r') as f, open('output_py.txt', 'r') as tree:
-    # tree = tree.readlines()
-    new_lines = []
+    # Turns output.py into a 2D array organized by line
     lines = [line.split() for line in tree]
-    replace_letters = ['[',']','-']
+
+    # These are the character that are to be removed
+    replace_letters = ['[',']','-','(',')']
     
+    # iterate through the 2D array of the output
+    # remove any characters that are not letters, underscores, or numbers
+    # returns same thing but cleaned up
+    new_lines = []
     for i in lines:
         temp = re.sub('[^A-Za-z0-9]', '', str(i))
         new_lines.append(temp)
+
+    
+    # print statements
+
     #print(new_lines)     
     #print(lines)
     print(len(lines[10]))
