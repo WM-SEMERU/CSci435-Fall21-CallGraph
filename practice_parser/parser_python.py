@@ -3,8 +3,7 @@ import re
 lines = []
 
 
-
-with open('test.py','r') as f, open('output.txt', 'r') as tree:
+with open('test.py','r') as f, open('output_py.txt', 'r') as tree:
     # tree = tree.readlines()
     new_lines = []
     lines = [line.split() for line in tree]
