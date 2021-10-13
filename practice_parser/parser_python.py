@@ -1,6 +1,12 @@
+# TODO write a method such that:
+#       input: tree-sitter output
+#       output: 2D array with only letters, numbers, underscores
+
+
 import re
 
-with open('test.py','r') as f, open('output_py.txt', 'r') as tree:
+# output.py is the tree-sitter output for test.py
+with open('output_py.txt', 'r') as tree:
     # Turns output.py into a 2D array organized by line
     lines = [line.split() for line in tree]
 
