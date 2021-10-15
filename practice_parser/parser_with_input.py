@@ -19,12 +19,22 @@ parser = Parser()
 """----------------------"""
 
 # TODO method to parse python code
-def parse_python(src_code):
+def parse_python(file):
     parser.set_language(PY_LANGUAGE)
-    print(src_code)
-
+    src_code = file.read()
+    lines = src_code.split('\n')
+    
     tree = parser.parse(bytes(src_code, "utf8"))
 
+    root_node = tree.root_node
+    children = root_node.children
+    print(children)
+    methods = []
+    for child in children:
+      if child.type == "function_definition":
+        methods.append(lines[child.start_point[0]])
+    print(methods)
+    
 # TODO method to parse java code
 def parse_java(src_code):   
     parser.set_language(JAVA_LANGUAGE)
@@ -52,13 +62,12 @@ def main():
   
 
   file = open(filepath, 'r')        # read-only file
-  file_code = file.read()           # source code in the form of a string
 
   # choose language to parse based on input
   if language == 'python' or 'py':
-      parse_python(file_code)
+      parse_python(file)
   elif language == 'java' or 'jv':
-      parse_java(file_code)
+      parse_java(file)
 
 
 if __name__ == '__main__':
