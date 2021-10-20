@@ -6,9 +6,11 @@ test_file = sys.argv[1]
 print(output_file)
 function = 'call'
 function2 = 'function'
+function2_2 = 'definition'
 if '.java' in test_file:
-    function = 'invocation'
-
+	function = 'invocation'
+	function2 = 'method'
+	function2_2 = 'declaration'
 code_lines = []
 with open(test_file, 'r') as test:
     code_lines = [line.split('\n') for line in test]
@@ -29,7 +31,6 @@ with open(output_file, 'r') as tree:
         temp = re.sub('[^A-Za-z0-9]', ' ', str(i))
         new_lines.append(temp)
 
-    function2_2 = 'definition'
     calls = []
     calls2 = {}
     lastKey = ''
