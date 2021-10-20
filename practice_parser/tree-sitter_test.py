@@ -7,7 +7,7 @@ Language.build_library(
 
   # Include one or more languages
   [
-    '/Users/tessiebaumann/Library/Mobile Documents/com~apple~CloudDocs/Software Engineering/tree-sitter-python'
+    '/Users/tessiebaumann/tree-sitter-python'
     # '/Users/tessiebaumann/Library/Mobile Documents/com~apple~CloudDocs/Software Engineering/tree-sitter-java'
   ]
 )
@@ -27,5 +27,9 @@ test_py = open('test.py', 'r')
 tree_py = parser_py.parse(bytes('test_py', "utf8"))
 # tree_java = parser_java.parse(bytes(test_java, "utf8"))
 
+
+# endFile = open("endFile.txt", 'w')
+# endFile.write(tree_py)
+# endFile.close()
 
 

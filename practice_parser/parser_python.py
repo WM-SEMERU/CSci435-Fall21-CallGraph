@@ -5,6 +5,7 @@ output_file = sys.argv[2]
 test_file = sys.argv[1]
 print(output_file)
 function = 'call'
+function2 = 'function'
 if '.java' in test_file:
     function = 'invocation'
 
@@ -28,13 +29,20 @@ with open(output_file, 'r') as tree:
         temp = re.sub('[^A-Za-z0-9]', ' ', str(i))
         new_lines.append(temp)
 
-    function = 'call'
+    function2_2 = 'definition'
     calls = []
+    calls2 = {}
+    lastKey = ''
     for i in new_lines:
         i = i.split()
         for n in range(len(i)):
             if i[n].find(function) != -1:
-                calls.append(code_lines[int(i[n + 1])][0][int(i[n + 2]):int(i[n + 4])])
+                calls2[lastKey].append(code_lines[int(i[n + 1])][0][int(i[n + 2]):int(i[n + 4])])
+                calls.append([code_lines[int(i[n + 1])][0][int(i[n + 2]):int(i[n + 4])], i])
+                break
+            if i[n].find(function2) != -1 and i[n+1].find(function2_2) != -1:
+                calls2[code_lines[int(i[n + 2])][0][int(i[n + 3]):int(i[n + 5])]] = []
+                lastKey = code_lines[int(i[n + 2])][0][int(i[n + 3]):int(i[n + 5])]
                 break
 
     
@@ -43,6 +51,11 @@ with open(output_file, 'r') as tree:
     #print(new_lines)     
     #print(lines)
     #print(len(lines[10]))
-    print(new_lines)
-    print(calls)
+    for line in calls2:
+        print(line)
+        print(calls2[line])
+    print()
+    for line in calls:
+        print(line)
+
 
