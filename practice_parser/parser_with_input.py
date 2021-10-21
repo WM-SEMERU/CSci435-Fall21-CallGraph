@@ -29,76 +29,57 @@ parser = Parser()
 # TODO method to parse python code
 def parse_python(file):
     parser.set_language(PY_LANGUAGE)
+    name_of_class = 'class_definition'
+    name_of_method = 'function_definition'
+    name_of_method_call = 'call'
     src_code = file.read()
     lines = src_code.split('\n')
     
     tree = parser.parse(bytes(src_code, "utf8"))
 
     root_node = tree.root_node
-    classes, methods, calls = breath_search_tree_python(root_node, lines)
+    classes, methods, calls = breath_search_tree(root_node, lines, name_of_class, name_of_method, name_of_method_call)
     print(classes, end = '\n\n')
     print(methods, end = '\n\n')
-    print(calls, end = '\n\n')
-
-    
-# The following code is a breath-first search of the tree by adding the children of all the nodes
-# currently in the children list to it.  It only terminates when there are no more children to add.
-def breath_search_tree_python(root_node,lines) -> list:
-    classes = []
-    methods = []
-    calls = []
-    children = root_node.children # initializes the list to parse
-    while len(children) > 0:
-      for child in children:
-        
-        if child.type == 'class_definition':  # adds all class names to a list
-          name = child.child_by_field_name('name')
-          classes.append(lines[name.start_point[0]][name.start_point[1]:name.end_point[1]])
-        elif child.type == 'function_definition':  # adds all method names to a list
-          name = child.child_by_field_name('name')
-          methods.append(lines[name.start_point[0]][name.start_point[1]:name.end_point[1]])
-        elif child.type == 'expression_statement' and child.children[0].type == 'call':  # adds all method calls to a list
-          call_line = child.children[0]
-          calls.append(lines[call_line.start_point[0]][call_line.start_point[1]:call_line.end_point[1]])
-
-        if len(child.children) > 0:         # adds all this nodes children to the list of nodes to parse
-          children.extend(child.children)   # 
-        children.remove(child)              # removes the current node
-    return classes, methods, calls
-    
+    print(calls, end = '\n\n')    
     
 # TODO method to parse java code
 def parse_java(file):   
     parser.set_language(JAVA_LANGUAGE)
+    name_of_class = 'class_declaration'
+    name_of_method = 'method_declaration'
+    name_of_method_call = 'method_invocation'
     src_code = file.read()
     lines = src_code.split('\n')
     
     tree = parser.parse(bytes(src_code, "utf8"))
 
     root_node = tree.root_node
-    classes, methods, calls = breath_search_tree_java(root_node, lines)
+    classes, methods, calls = breath_search_tree(root_node, lines, name_of_class, name_of_method, name_of_method_call)
     print(classes, end = '\n\n')
     print(methods, end = '\n\n')
     print(calls, end = '\n\n')
 
-
-# Java is more complicated than Python for parsing. I just copied the python code and changed some names and variables,
-# but class constructors are referred to differently than regular methods so it misses those
-def breath_search_tree_java(root_node,lines) -> list:
+# The following code is a breath-first search of the tree by adding the children of all the nodes
+# currently in the children list to it.  It only terminates when there are no more children to add.
+def breath_search_tree(root_node, lines, name_of_class, name_of_method, name_of_method_call) -> list:
     classes = []
     methods = []
     calls = []
     children = root_node.children # initializes the list to parse
     while len(children) > 0:
       for child in children:
-
-        if child.type == 'class_declaration':  # adds all class names to a list
-          name = child.child_by_field_name('name')
-          classes.append(lines[name.start_point[0]][name.start_point[1]:name.end_point[1]])
-        elif child.type == 'method_declaration':  # adds all method names to a list
-          name = child.child_by_field_name('name')
-          methods.append(lines[name.start_point[0]][name.start_point[1]:name.end_point[1]])
-        elif child.type == 'expression_statement' and child.children[0].type == 'method_invocation':  # adds all method calls to a list
+                
+        child_type = child.type
+        if child_type == name_of_class:  # adds all class names to a list
+          name_node = child.child_by_field_name('name')
+          name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
+          classes.append(name)
+        elif child_type == name_of_method:  # adds all method names to a list
+          name_node = child.child_by_field_name('name')
+          name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
+          methods.append(name)
+        elif child_type == 'expression_statement' and child.children[0].type == name_of_method_call:  # adds all method calls to a list
           call_line = child.children[0]
           calls.append(lines[call_line.start_point[0]][call_line.start_point[1]:call_line.end_point[1]])
 
@@ -106,7 +87,6 @@ def breath_search_tree_java(root_node,lines) -> list:
           children.extend(child.children)   # 
         children.remove(child)              # removes the current node
     return classes, methods, calls
-
 
 def main():  
   if len(sys.argv) == 1:                                    # if there are no arguments passed to the command line take user input
