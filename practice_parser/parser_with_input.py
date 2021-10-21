@@ -7,8 +7,8 @@ from tree_sitter import Language, Parser
 Language.build_library(
     'build/my-languages.so',
     [
-        'vendor/tree-sitter-python',
-        'vendor/tree-sitter-java'
+        'languages/tree-sitter-python',
+        'languages/tree-sitter-java'
     ]
 )
 
@@ -21,19 +21,17 @@ parser = Parser()
 # TODO method to parse python code
 def parse_python(file):
     parser.set_language(PY_LANGUAGE)
+    print("hello")
     src_code = file.read()
+    print(src_code)
     lines = src_code.split('\n')
     
     tree = parser.parse(bytes(src_code, "utf8"))
 
     root_node = tree.root_node
-    children = root_node.children
-    print(children)
-    methods = []
-    for child in children:
-      if child.type == "function_definition":
-        methods.append(lines[child.start_point[0]])
-    print(methods)
+    print(root_node)
+    
+  
     
 # TODO method to parse java code
 def parse_java(src_code):   
@@ -50,6 +48,8 @@ def main():
 
   cmd_line_args = sys.argv[1:] # cmd_line_args[0] = [filepath] and cmd_line_args[1] = [language]
   
+  filepath = ""
+
   if len(cmd_line_args) == 0:                                   # if there are no arguments passed to the command line take user input
     filepath = input("What is the filepath of the file?" )
     language = input("What language is the file coded in? ").lower()
@@ -60,8 +60,8 @@ def main():
     filepath = cmd_line_args[0]
     language = cmd_line_args[1].lower()
   
-
   file = open(filepath, 'r')        # read-only file
+
 
   # choose language to parse based on input
   if language == 'python' or 'py':
