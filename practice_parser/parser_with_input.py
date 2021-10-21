@@ -7,8 +7,8 @@ from tree_sitter import Language, Parser
 Language.build_library(
     'build/my-languages.so',
     [
-        'languages/tree-sitter-python',
-        'languages/tree-sitter-java'
+        'vendor/tree-sitter-python',
+        'vendor/tree-sitter-java'
     ]
 )
 
