@@ -29,16 +29,13 @@ parser = Parser()
 # TODO method to parse python code
 def parse_python(file):
     parser.set_language(PY_LANGUAGE)
-    name_of_class = 'class_definition'
-    name_of_method = 'function_definition'
-    name_of_method_call = 'call'
     src_code = file.read()
     lines = src_code.split('\n')
     
     tree = parser.parse(bytes(src_code, "utf8"))
 
     root_node = tree.root_node
-    classes, methods, calls = breath_search_tree(root_node, lines, name_of_class, name_of_method, name_of_method_call)
+    classes, methods, calls = breath_search_tree(root_node, lines, 'class_definition', 'function_definition', 'call')
     print(classes, end = '\n\n')
     print(methods, end = '\n\n')
     print(calls, end = '\n\n')    
@@ -46,16 +43,13 @@ def parse_python(file):
 # TODO method to parse java code
 def parse_java(file):   
     parser.set_language(JAVA_LANGUAGE)
-    name_of_class = 'class_declaration'
-    name_of_method = 'method_declaration'
-    name_of_method_call = 'method_invocation'
     src_code = file.read()
     lines = src_code.split('\n')
     
     tree = parser.parse(bytes(src_code, "utf8"))
 
     root_node = tree.root_node
-    classes, methods, calls = breath_search_tree(root_node, lines, name_of_class, name_of_method, name_of_method_call)
+    classes, methods, calls = breath_search_tree(root_node, lines, 'class_declaration', 'method_declaration', 'method_invocation')
     print(classes, end = '\n\n')
     print(methods, end = '\n\n')
     print(calls, end = '\n\n')
@@ -76,19 +70,19 @@ def breath_search_tree(root_node, lines, name_of_class, name_of_method, name_of_
           name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
           classes.append(name)
         elif child_type == name_of_method:  # adds all method names to a list
-          name_node = child.child_by_field_name('name')
-          name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
+          lines_n = [line + "\n" for line in lines[child.start_point[0]:child.end_point[0] + 1]]
+          name = "".join(lines_n)
           methods.append(name)
         elif child_type == 'expression_statement' and child.children[0].type == name_of_method_call:  # adds all method calls to a list
-          call_line = child.children[0]
-          calls.append(lines[call_line.start_point[0]][call_line.start_point[1]:call_line.end_point[1]])
+          call_name = lines[child.start_point[0]][child.start_point[1]:child.end_point[1]]
+          calls.append(call_name)
 
         if len(child.children) > 0:         # adds all this nodes children to the list of nodes to parse
           children.extend(child.children)   # 
         children.remove(child)              # removes the current node
     return classes, methods, calls
 
-def main():  
+def main():
   if len(sys.argv) == 1:                                    # if there are no arguments passed to the command line take user input
     filepath = input("What is the filepath of the file? ")
   else:
