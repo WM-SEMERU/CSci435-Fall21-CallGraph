@@ -35,7 +35,7 @@ def parse_python(file):
   tree = parser.parse(bytes(src_code, "utf8"))
 
   root_node = tree.root_node
-  classes, methods, calls = breath_search_tree(root_node, lines, 'class_definition', 'function_definition', 'call')
+  classes, methods, calls = breadth_search_tree(root_node, lines, 'class_definition', 'function_definition', 'call')
   print(classes, end = '\n\n')
   print(methods, end = '\n\n')
   print(calls, end = '\n\n')    
@@ -49,14 +49,14 @@ def parse_java(file):
   tree = parser.parse(bytes(src_code, "utf8"))
 
   root_node = tree.root_node
-  classes, methods, calls = breath_search_tree(root_node, lines, 'class_declaration', 'method_declaration', 'method_invocation')
+  classes, methods, calls = breadth_search_tree(root_node, lines, 'class_declaration', 'method_declaration', 'method_invocation')
   print(classes, end = '\n\n')
   print(methods, end = '\n\n')
   print(calls, end = '\n\n')
 
-# The following code is a breath-first search of the tree by adding the children of all the nodes
+# The following code is a breadth-first search of the tree by adding the children of all the nodes
 # currently in the children list to it.  It only terminates when there are no more children to add.
-def breath_search_tree(root_node, lines, name_of_class, name_of_method, name_of_method_call) -> list:
+def breadth_search_tree(root_node, lines, name_of_class, name_of_method, name_of_method_call) -> list:
   classes = []
   methods = []
   calls = []
