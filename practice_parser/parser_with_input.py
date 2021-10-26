@@ -8,12 +8,12 @@ Language.build_library(
     'build/my-languages.so',
     [
         'vendor/tree-sitter-python',
-        #'vendor/tree-sitter-java'
+        'vendor/tree-sitter-java'
     ]
 )
 
 PY_LANGUAGE = Language('build/my-languages.so', 'python')
-#JAVA_LANGUAGE = Language('build/my-languages.so', 'java')  # In case people want to work on java functionality
+JAVA_LANGUAGE = Language('build/my-languages.so', 'java')  # In case people want to work on java functionality
 
 parser = Parser()
 """----------------------"""
@@ -28,101 +28,64 @@ parser = Parser()
 # There are also methods like get_sibling and get_parent and such but I haven't used any of those for parsing.
 
 # TODO method to parse python code
-def parse_python():
+def parse_python_with_queries():
   parser.set_language(PY_LANGUAGE)
   global tree
   tree = parser.parse(bytes(src_code, "utf8"))
-  
-  query = PY_LANGUAGE.query("""
-  (function_definition
-  name: (identifier) @function.def
-  body: (block) @function.body)
-
-  
-
-  (call
-    function: (identifier) @function.call)
-  """)
-  captures = query.captures(tree.root_node)
-  for capture in captures:
-    print(capture)
-    #line = lines[capture[0].start_point[0]]
-    #print(line[capture[0].start_point[1]:capture[0].end_point[1]])
-  """
-  classes, methods, calls = breadth_search_tree('class_definition', 'function_definition', 'call')
-  method_call_dict = get_method_call_dict(methods)
-  print(method_call_dict)
-  #print(classes, end = '\n\n')
-  #print(methods, end = '\n\n')
-  #print(calls, end = '\n\n')
   #"""
+  query = PY_LANGUAGE.query("""
+  (function_definition) @function.definition
+  (call) @method.call
+  """)
+  print_method_dict_with_queries(query)
     
 # TODO method to parse java code
-def parse_java():
-  #parser.set_language(JAVA_LANGUAGE)
+def parse_java_with_queries():
+  parser.set_language(JAVA_LANGUAGE)
   global tree
   tree = parser.parse(bytes(src_code, "utf8"))
 
-  classes, methods, calls = breadth_search_tree('class_declaration', 'method_declaration', 'method_invocation')
-  method_call_dict = get_method_call_dict(methods)
-  print(method_call_dict)
-  #print(classes, end = '\n\n')
-  #print(methods, end = '\n\n')
-  #print(calls, end = '\n\n')
+  query = JAVA_LANGUAGE.query("""
+  (method_declaration) @function.definition
+  
+  (constructor_declaration) @function.definition
+
+  (object_creation_expression) @method.call
+
+  (method_invocation) @method.call
+  """)
+
+  print_method_dict_with_queries(query)
+
+def print_method_dict_with_queries(query):
+  captures = query.captures(tree.root_node)
+  calls = {}
+  method_calls = []
+  globals = []
+  method_name = ''
+  start_line = 0
+  end_line = 0
+  for capture in captures:
+    if capture[1] == 'function.definition':
+      if method_name != '':
+        calls[method_name] = method_calls
+      method_name = "".join([line for line in lines[capture[0].start_point[0]:capture[0].end_point[0] + 1]])
+      start_line = capture[0].start_point[0]
+      end_line = capture[0].end_point[0] + 1
+      method_calls = []
+    elif capture[1] == 'method.call':
+      line_num = capture[0].start_point[0]
+      call = lines[line_num][capture[0].start_point[1]:capture[0].end_point[1]]
+      if start_line < line_num < end_line:
+        method_calls.append(call)
+      else:
+        globals.append(call)
+  calls['global'] = globals
+  for call in calls.items():
+    print(call)
 
 # The following code is a breadth-first search of the tree by adding the children of all the nodes
 # currently in the children list to it.  It only terminates when there are no more children to add.
-def breadth_search_tree(name_of_class, name_of_method, name_of_method_call) -> list:
-  root_node = tree.root_node
-  classes = []
-  methods = []
-  calls = []
-  children = root_node.children # initializes the list to parse
-  while len(children) > 0:
-    for child in children:
-
-      add_children = True
-      child_type = child.type
-      # I wish there were switch statements in python
-      if child_type == name_of_class:  # if its a class
-        name_node = child.child_by_field_name('name')    # get its name
-        name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
-        classes.append(child)
-      elif child_type == name_of_method:  # if its a method
-        #lines_n = [line + "\n" for line in lines[child.start_point[0]:child.end_point[0] + 1]] # adds a "\n" character back to the end of every line
-        #name = "".join(lines_n)
-        methods.append(child)
-        add_children = False
-      elif child_type == name_of_method_call:  # if its a method call
-        call_name = lines[child.start_point[0]][child.start_point[1]:child.end_point[1]]
-        calls.append(call_name)
-      
-      
-      if len(child.children) > 0 and add_children:         # adds all this nodes children to the list of nodes to parse
-        children.extend(child.children)   # 
-      children.remove(child)              # removes the current node
-  return classes, methods, calls
-
-def get_method_call_dict(methods) -> dict:
-  ret = {}
-  for method in methods:
-    #lines_n = [line + "\n" for line in lines[method.start_point[0]:method.end_point[0] + 1]] # adds a "\n" character back to the end of every line
-    #name = "".join(lines_n)
-    method_calls = []
-    children = method.child_by_field_name('body').children
-    while len(children) > 0:
-      for child in children:
-
-        if child.type == 'call':
-          method_calls.append(lines[child.start_point[0]][child.start_point[1]:child.end_point[1]])
-
-        if len(child.children) > 0:         # adds all this nodes children to the list of nodes to parse
-          children.extend(child.children)   # 
-        children.remove(child)              # removes the current node
-    name_node = method.child_by_field_name('name')    # get its name
-    name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
-    ret[name] = method_calls
-  return ret
 
 def main():
   if len(sys.argv) == 1:                                    # if there are no arguments passed to the command line take user input
@@ -137,9 +100,9 @@ def main():
   
 
   if ".py" in filepath:
-    parse_python()
+    parse_python_with_queries()
   elif ".java" in filepath:
-    parse_java()
+    parse_java_with_queries()
 
 
 if __name__ == '__main__':
