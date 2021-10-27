@@ -1,5 +1,6 @@
 import sys
 import os
+import pandas as pd
 from typing import Tuple
 from tree_sitter import Language, Parser
 
@@ -40,14 +41,16 @@ def parse_python_with_queries():
   (function_definition 
     body: (block
       (expression_statement 
-        (assignment (call) @method.call)))) @function.definition
-  (function_definition 
-    body: (block 
-      (expression_statement (call) @method.call))) @function.definition
-  (function_definition) @function.definition
+        (call)? @method.call
+        (assignment 
+          (call)? @method.call)?)?)) @function.definition
   (call) @method.call
   """)
   print_method_dict_with_queries(query)
+  query = PY_LANGUAGE.query("""
+  (call) @call
+  """)
+  print_method_dict_with_queries_v2(query)
 
 # TODO method to parse java code
 def parse_java_with_queries():
@@ -66,6 +69,12 @@ def parse_java_with_queries():
   """)
 
   print_method_dict_with_queries(query)
+  query = JAVA_LANGUAGE.query("""
+  (object_creation_expression) @call
+
+  (method_invocation) @call
+  """)
+  print_method_dict_with_queries_v2(query)
 
 # find all function_definitions
 # walk through them and find all the calls in the children
@@ -101,7 +110,16 @@ def print_method_dict_with_queries(query):
   for call in calls.items():
     print(call)#'''
 
+def print_method_dict_with_queries_v2(query):
+  captures = query.captures(tree.root_node)
+  for capture in captures:
+
+    pass
+
+  pass
+
 def main():
+  global filepath
   if len(sys.argv) == 1:                                    # if there are no arguments passed to the command line take user input
     filepath = input("What is the filepath of the file? ")
   else:
