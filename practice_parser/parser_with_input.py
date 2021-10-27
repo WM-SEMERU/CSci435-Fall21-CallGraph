@@ -1,5 +1,6 @@
 import sys
 import os
+from typing import Tuple
 from tree_sitter import Language, Parser
 
 
@@ -32,13 +33,22 @@ def parse_python_with_queries():
   parser.set_language(PY_LANGUAGE)
   global tree
   tree = parser.parse(bytes(src_code, "utf8"))
+
+
   #"""
   query = PY_LANGUAGE.query("""
+  (function_definition 
+    body: (block
+      (expression_statement 
+        (assignment (call) @method.call)))) @function.definition
+  (function_definition 
+    body: (block 
+      (expression_statement (call) @method.call))) @function.definition
   (function_definition) @function.definition
   (call) @method.call
   """)
   print_method_dict_with_queries(query)
-    
+
 # TODO method to parse java code
 def parse_java_with_queries():
   parser.set_language(JAVA_LANGUAGE)
@@ -57,6 +67,9 @@ def parse_java_with_queries():
 
   print_method_dict_with_queries(query)
 
+# find all function_definitions
+# walk through them and find all the calls in the children
+
 def print_method_dict_with_queries(query):
   captures = query.captures(tree.root_node)
   calls = {}
@@ -65,27 +78,28 @@ def print_method_dict_with_queries(query):
   method_name = ''
   start_line = 0
   end_line = 0
-  for capture in captures:
+  for capture in captures:   
     if capture[1] == 'function.definition':
       if method_name != '':
-        calls[method_name] = method_calls
-      method_name = "".join([line for line in lines[capture[0].start_point[0]:capture[0].end_point[0] + 1]])
+        calls[method_name] = set(method_calls)
+      name_node = capture[0].child_by_field_name('name')    # get its name
+      method_name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
+      #method_name = "".join([line for line in lines[capture[0].start_point[0]:capture[0].end_point[0] + 1]]) 
       start_line = capture[0].start_point[0]
       end_line = capture[0].end_point[0] + 1
       method_calls = []
     elif capture[1] == 'method.call':
+      
       line_num = capture[0].start_point[0]
       call = lines[line_num][capture[0].start_point[1]:capture[0].end_point[1]]
       if start_line < line_num < end_line:
         method_calls.append(call)
       else:
         globals.append(call)
+  calls[method_name] = set(method_calls)
   calls['global'] = globals
   for call in calls.items():
-    print(call)
-
-# The following code is a breadth-first search of the tree by adding the children of all the nodes
-# currently in the children list to it.  It only terminates when there are no more children to add.
+    print(call)#'''
 
 def main():
   if len(sys.argv) == 1:                                    # if there are no arguments passed to the command line take user input
@@ -97,7 +111,6 @@ def main():
   global src_code, lines
   src_code = file.read()
   lines = src_code.split('\n')
-  
 
   if ".py" in filepath:
     parse_python_with_queries()
