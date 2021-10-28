@@ -2,7 +2,6 @@ import sys
 import os
 import pandas as pd
 import numpy as np
-from typing import Tuple
 from tree_sitter import Language, Parser
 
 
@@ -16,7 +15,7 @@ Language.build_library(
 )
 
 PY_LANGUAGE = Language('build/my-languages.so', 'python')
-JAVA_LANGUAGE = Language('build/my-languages.so', 'java')  # In case people want to work on java functionality
+JAVA_LANGUAGE = Language('build/my-languages.so', 'java') 
 
 parser = Parser()
 """----------------------"""
@@ -58,8 +57,8 @@ def parse_python_with_queries():
           (call)? @method.call)?)?)) @function.definition
   (call) @method.call
   """)
-  print_method_dict_with_queries(query)
-  print('\n')
+  #print_method_dict_with_queries(query)
+  #print('\n')
 
   # query 2: finds all method calls
   query = PY_LANGUAGE.query("""
@@ -83,7 +82,7 @@ def parse_java_with_queries():
   (method_invocation) @method.call
   """)
 
-  print_method_dict_with_queries(query)
+  #print_method_dict_with_queries(query)
   print('\n')
   query = JAVA_LANGUAGE.query("""
   (object_creation_expression) @call
@@ -131,14 +130,14 @@ def print_method_dict_with_queries(query):
 def print_method_dataframe_with_queries(query):
   captures = query.captures(tree.root_node)     # captures should be a list of every method call in the file based on the query it is based on
   method_dict = {}
-  method_dict['global'] = []                    # initialize global key for any methods not called from a function
+  method_dict['global'] = [[], None]                    # initialize global key for any methods not called from a function
   for capture in captures:
     parent = capture[0].parent
     function, class_d = None, None
     while parent.parent is not None:            # This loop finds the nearest function and class that the method call is a part of
-      if parent.type == 'function_definition' or parent.type == 'method_declaration':  # These names only work for PYTHON, not JAVA
+      if parent.type == 'function_definition' or parent.type == 'method_declaration':
         function = parent
-      elif parent.type == 'class_definition' or parent.type == 'class_declaration':   # only works for PYTHON
+      elif parent.type == 'class_definition' or parent.type == 'class_declaration': 
         class_d = parent
         break
       parent = parent.parent                    # iterate through the method call's parents
@@ -147,30 +146,40 @@ def print_method_dataframe_with_queries(query):
     call_name = lines[capture[0].start_point[0]][capture[0].start_point[1]:capture[0].end_point[1]]  # name of the method call
     #print(call_name)
 
-    if parent.parent is None:                   # method is a global variable
-      method_calls = method_dict.get('global')
+    """if function is None and class_d is None and parent.parent is None:      # method is a global variable
+      method_calls = method_dict['global'][0]
       method_calls.append(call_name)
-      method_dict['global'] = method_calls      # update global method_calls
-      continue
+      method_dict['global'][0] = method_calls      # update global method_calls
+      continue"""
 
     if function is not None:
       name_node = function.child_by_field_name('name')    
       function_name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]            # Use this if you only want the name of the function (ex: fuel_up(), main(), ...)
-      function_definition = "".join([line for line in lines[function.start_point[0]:function.end_point[0] + 1]])  # Use this if you want the entire function definition (ex: fuel_up(){...})
+      function_definition = "\n".join([line for line in lines[function.start_point[0]:function.end_point[0] + 1]])  # Use this if you want the entire function definition (ex: fuel_up(){...})
+    else:
+      function_name = None
+      function_definition = None
     if class_d is not None:                     # This is unused code, but it stores name and defintion of the class closest to the method call
       name_node = class_d.child_by_field_name('name')
       class_name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
-      class_definition = "".join([line for line in lines[class_d.start_point[0]:class_d.end_point[0] + 1]]) 
+      class_definition = "\n".join([line for line in lines[class_d.start_point[0]:class_d.end_point[0] + 1]])
+    else:
+      class_name = None
+      class_definition = None
 
     if function_name in method_dict.keys():         # Since the function is already in the dataframe/dictionary, get the list of method calls, 
-      method_calls = method_dict.get(function_name) # append the current method call, and reinitialize the method call list
+      method_calls = method_dict[function_name][0] # append the current method call, and reinitialize the method call list
       method_calls.append(call_name)
-      method_dict[function_name] = method_calls
-    else:                                       # function is not in the dataframe/dictionary, initialize its list of method calls
-      method_dict[function_name] = [call_name]
+      method_dict[function_name][0] = method_calls
+    else:                                           # function is not in the dataframe/dictionary, initialize its list of method calls
+      method_dict[function_name] = [[call_name], class_name]    # making it a list of lists solve the problem with the lists being of different lengths
   
-  for call in method_dict.items():
-    print(call)
+  df = pd.DataFrame(method_dict)  
+  columns = list(df)
+  for i in columns:
+    print(i, df[i][0], df[i][1])
+  #for call in method_dict.items():
+    #print(call)
 
 def main():
   global filepath
