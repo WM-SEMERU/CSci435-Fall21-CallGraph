@@ -1,6 +1,7 @@
 import sys
 import os
 import pandas as pd
+import numpy as np
 from typing import Tuple
 from tree_sitter import Language, Parser
 
@@ -36,7 +37,7 @@ def parse_python_with_queries():
   tree = parser.parse(bytes(src_code, "utf8"))
 
 
-  #"""
+  # query 1: calls all method calls as @method.call and all methods as @function.definition
   query = PY_LANGUAGE.query("""
   (function_definition 
     body: (block
@@ -47,10 +48,13 @@ def parse_python_with_queries():
   (call) @method.call
   """)
   print_method_dict_with_queries(query)
+  print('\n')
+
+  # query 2: finds all method calls
   query = PY_LANGUAGE.query("""
   (call) @call
   """)
-  print_method_dict_with_queries_v2(query)
+  print_method_dataframe_with_queries(query)
 
 # TODO method to parse java code
 def parse_java_with_queries():
@@ -69,16 +73,17 @@ def parse_java_with_queries():
   """)
 
   print_method_dict_with_queries(query)
+  print('\n')
   query = JAVA_LANGUAGE.query("""
   (object_creation_expression) @call
 
   (method_invocation) @call
   """)
-  print_method_dict_with_queries_v2(query)
+  print_method_dataframe_with_queries(query)
 
-# find all function_definitions
-# walk through them and find all the calls in the children
-
+# This is the first version of the query parsing.
+# It is given the method and method call nodes and trys to connect them by fitting the start_point of the method.call nodes
+# in between the start_point and end_point of a function.definition nodes.  It's not very readable and the one below this is much better
 def print_method_dict_with_queries(query):
   captures = query.captures(tree.root_node)
   calls = {}
@@ -108,15 +113,53 @@ def print_method_dict_with_queries(query):
   calls[method_name] = set(method_calls)
   calls['global'] = globals
   for call in calls.items():
-    print(call)#'''
+    print(call)
 
-def print_method_dict_with_queries_v2(query):
-  captures = query.captures(tree.root_node)
+# This is the second version of query parsing.  It uses the method call nodes to find their corresponding method parent nodes.
+# It then pairs them up in a dictionary/dataframe
+def print_method_dataframe_with_queries(query):
+  captures = query.captures(tree.root_node)     # captures should be a list of every method call in the file based on the query it is based on
+  method_dict = {}
+  method_dict['global'] = []                    # initialize global key for any methods not called from a function
   for capture in captures:
+    parent = capture[0].parent
+    function, class_d = None, None
+    while parent.parent is not None:            # This loop finds the nearest function and class that the method call is a part of
+      if parent.type == 'function_definition' or parent.type == 'method_declaration':  # These names only work for PYTHON, not JAVA
+        function = parent
+      elif parent.type == 'class_definition' or parent.type == 'class_declaration':   # only works for PYTHON
+        class_d = parent
+        break
+      parent = parent.parent                    # iterate through the method call's parents
+      #print(parent) 
+    
+    call_name = lines[capture[0].start_point[0]][capture[0].start_point[1]:capture[0].end_point[1]]  # name of the method call
+    #print(call_name)
 
-    pass
+    if parent.parent is None:                   # method is a global variable
+      method_calls = method_dict.get('global')
+      method_calls.append(call_name)
+      method_dict['global'] = method_calls      # update global method_calls
+      continue
 
-  pass
+    if function is not None:
+      name_node = function.child_by_field_name('name')    
+      function_name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]            # Use this if you only want the name of the function (ex: fuel_up(), main(), ...)
+      function_definition = "".join([line for line in lines[function.start_point[0]:function.end_point[0] + 1]])  # Use this if you want the entire function definition (ex: fuel_up(){...})
+    if class_d is not None:                     # This is unused code, but it stores name and defintion of the class closest to the method call
+      name_node = class_d.child_by_field_name('name')
+      class_name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
+      class_definition = "".join([line for line in lines[class_d.start_point[0]:class_d.end_point[0] + 1]]) 
+
+    if function_name in method_dict.keys():         # Since the function is already in the dataframe/dictionary, get the list of method calls, 
+      method_calls = method_dict.get(function_name) # append the current method call, and reinitialize the method call list
+      method_calls.append(call_name)
+      method_dict[function_name] = method_calls
+    else:                                       # function is not in the dataframe/dictionary, initialize its list of method calls
+      method_dict[function_name] = [call_name]
+  
+  for call in method_dict.items():
+    print(call)
 
 def main():
   global filepath
