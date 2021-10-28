@@ -30,6 +30,17 @@ parser = Parser()
 # 
 # There are also methods like get_sibling and get_parent and such but I haven't used any of those for parsing.
 
+
+# Queries: 
+# - anything in parenthesis is the type of the node you are trying to find.  
+# - (call) for python means you are trying to find the method calls
+# - the @ symbol is used when calling the capture method, anything without an @ symbol following it will be disregarded
+# -    you wouldn't be able to use a query that's just (call) because it wouldn't return anything, but (call) @some-name would
+# -    specifically, it would return a list of tuples where index 0 is the method call node and index 1 is "some-name"
+# - by putting additional parenthesis in a set of parenthesis you denote a parent-child relationship between the two nodes:
+# -    ex: (class_definition (identifier) ) indicates that (identifier) is a child of (class_definition)
+# -    The same rules above apply to child nodes, so (class_definition (identifier) @some-name) would return the identifiers but not the class_definition
+
 # TODO method to parse python code
 def parse_python_with_queries():
   parser.set_language(PY_LANGUAGE)
