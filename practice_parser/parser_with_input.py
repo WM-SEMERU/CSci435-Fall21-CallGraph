@@ -130,6 +130,7 @@ def print_method_dict_with_queries(query):
 def print_method_dataframe_with_queries(query):
   captures = query.captures(tree.root_node)     # captures should be a list of every method call in the file based on the query it is based on
   method_dict = {}
+  method_defintion = {}
   method_dict['global'] = [[], None]                    # initialize global key for any methods not called from a function
   for capture in captures:
     parent = capture[0].parent
@@ -156,6 +157,7 @@ def print_method_dataframe_with_queries(query):
       name_node = function.child_by_field_name('name')    
       function_name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]            # Use this if you only want the name of the function (ex: fuel_up(), main(), ...)
       function_definition = "\n".join([line for line in lines[function.start_point[0]:function.end_point[0] + 1]])  # Use this if you want the entire function definition (ex: fuel_up(){...})
+      method_defintion[function_name] = [function_definition]   # adds function defintion into a dictionary
     else:
       function_name = None
       function_definition = None
@@ -173,11 +175,19 @@ def print_method_dataframe_with_queries(query):
       method_dict[function_name][0] = method_calls
     else:                                           # function is not in the dataframe/dictionary, initialize its list of method calls
       method_dict[function_name] = [[call_name], class_name]    # making it a list of lists solve the problem with the lists being of different lengths
-  
+
+      
   df = pd.DataFrame(method_dict)  
+  df2 = pd.DataFrame(method_defintion) # creates the method_defintion dict into a dataframe
+  #print('Function_defintion: ', method_defintion)
+  df = pd.concat([df,df2],ignore_index=True)   # concats the defintion to the main dataframe
   columns = list(df)
   for i in columns:
-    print(i, df[i][0], df[i][1])
+    print(i, df[i][0], df[i][1], df[i][2])
+
+  csv_file = open('test_py.csv', 'w+')  # writes the dataframe to a csv file (this test is for test.py)
+  df.to_csv(csv_file)   # csv may be annoying to look at since method defintion takes up a lot of space
+
   #for call in method_dict.items():
     #print(call)
 
