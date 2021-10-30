@@ -125,6 +125,17 @@ def print_method_dict_with_queries(query):
   for call in calls.items():
     print(call)
 
+# Pre: the start_point and end_point values of a node
+# Post: return the substring of the source that the start_point and end_point point to
+def get_code_string(start_point, end_point) -> str:
+  if start_point[0] == end_point[0]:
+    return lines[start_point[0]][start_point[1]:end_point[1]]
+  ret = lines[start_point[0]][start_point[1]:]
+  ret += "\n".join([line for line in lines[start_point[0] + 1:end_point[0]]])
+  ret += "\n" + lines[end_point[0]][:end_point[1]]
+  return ret
+
+
 # This is the second version of query parsing.  It uses the method call nodes to find their corresponding method parent nodes.
 # It then pairs them up in a dictionary/dataframe
 def print_method_dataframe_with_queries(query):
@@ -133,7 +144,9 @@ def print_method_dataframe_with_queries(query):
   method_defintion = {}
   method_dict['global'] = [[], None]                    # initialize global key for any methods not called from a function
   for capture in captures:
-    parent = capture[0].parent
+    current_call = capture[0]
+
+    parent = current_call.parent
     function, class_d = None, None
     while parent.parent is not None:            # This loop finds the nearest function and class that the method call is a part of
       if parent.type == 'function_definition' or parent.type == 'method_declaration':
@@ -144,7 +157,7 @@ def print_method_dataframe_with_queries(query):
       parent = parent.parent                    # iterate through the method call's parents
       #print(parent) 
     
-    call_name = lines[capture[0].start_point[0]][capture[0].start_point[1]:capture[0].end_point[1]]  # name of the method call
+    call_name = get_code_string(current_call.start_point, current_call.end_point)  # name of the method call
     #print(call_name)
 
     """if function is None and class_d is None and parent.parent is None:      # method is a global variable
@@ -155,16 +168,18 @@ def print_method_dataframe_with_queries(query):
 
     if function is not None:
       name_node = function.child_by_field_name('name')    
-      function_name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]            # Use this if you only want the name of the function (ex: fuel_up(), main(), ...)
-      function_definition = "\n".join([line for line in lines[function.start_point[0]:function.end_point[0] + 1]])  # Use this if you want the entire function definition (ex: fuel_up(){...})
+      parameters_node = function.child_by_field_name('parameters')
+      function_name = get_code_string(name_node.start_point, name_node.end_point) + get_code_string(parameters_node.start_point, parameters_node.end_point)
+      # Use this if you only want the signature of the function (ex: fuel_up(parameters), main(), ...)
+      function_definition = get_code_string(function.start_point, function.end_point)  # Use this if you want the entire function definition (ex: fuel_up(){...})
       method_defintion[function_name] = [function_definition]   # adds function defintion into a dictionary
     else:
       function_name = None
       function_definition = None
     if class_d is not None:                     # This is unused code, but it stores name and defintion of the class closest to the method call
       name_node = class_d.child_by_field_name('name')
-      class_name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
-      class_definition = "\n".join([line for line in lines[class_d.start_point[0]:class_d.end_point[0] + 1]])
+      class_name = get_code_string(name_node.start_point, name_node.end_point)
+      class_definition = get_code_string(class_d.start_point, class_d.end_point)
     else:
       class_name = None
       class_definition = None
@@ -179,7 +194,7 @@ def print_method_dataframe_with_queries(query):
       
   df = pd.DataFrame(method_dict)  
   df2 = pd.DataFrame(method_defintion) # creates the method_defintion dict into a dataframe
-  #print('Function_defintion: ', method_defintion)
+  print('Function_defintion: ', method_defintion)
   df = pd.concat([df,df2],ignore_index=True)   # concats the defintion to the main dataframe
   columns = list(df)
   for i in columns:
