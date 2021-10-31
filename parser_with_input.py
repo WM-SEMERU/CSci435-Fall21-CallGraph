@@ -91,40 +91,6 @@ def parse_java_with_queries():
   """)
   print_method_dataframe_with_queries(query)
 
-# This is the first version of the query parsing.
-# It is given the method and method call nodes and trys to connect them by fitting the start_point of the method.call nodes
-# in between the start_point and end_point of a function.definition nodes.  It's not very readable and the one below this is much better
-def print_method_dict_with_queries(query):
-  captures = query.captures(tree.root_node)
-  calls = {}
-  method_calls = []
-  globals = []
-  method_name = ''
-  start_line = 0
-  end_line = 0
-  for capture in captures:   
-    if capture[1] == 'function.definition':
-      if method_name != '':
-        calls[method_name] = set(method_calls)
-      name_node = capture[0].child_by_field_name('name')    # get its name
-      method_name = lines[name_node.start_point[0]][name_node.start_point[1]:name_node.end_point[1]]
-      #method_name = "".join([line for line in lines[capture[0].start_point[0]:capture[0].end_point[0] + 1]]) 
-      start_line = capture[0].start_point[0]
-      end_line = capture[0].end_point[0] + 1
-      method_calls = []
-    elif capture[1] == 'method.call':
-      
-      line_num = capture[0].start_point[0]
-      call = lines[line_num][capture[0].start_point[1]:capture[0].end_point[1]]
-      if start_line < line_num < end_line:
-        method_calls.append(call)
-      else:
-        globals.append(call)
-  calls[method_name] = set(method_calls)
-  calls['global'] = globals
-  for call in calls.items():
-    print(call)
-
 # Pre: the start_point and end_point values of a node
 # Post: return the substring of the source that the start_point and end_point point to
 def get_code_string(start_point, end_point) -> str:
@@ -136,13 +102,11 @@ def get_code_string(start_point, end_point) -> str:
   return ret
 
 
-# This is the second version of query parsing.  It uses the method call nodes to find their corresponding method parent nodes.
+# This method uses the method call nodes to find their corresponding method parent nodes.
 # It then pairs them up in a dictionary/dataframe
 def print_method_dataframe_with_queries(query):
   captures = query.captures(tree.root_node)     # captures should be a list of every method call in the file based on the query it is based on
   method_dict = {}
-  method_defintion = {}
-  method_dict['global'] = [[], None]                    # initialize global key for any methods not called from a function
   for capture in captures:
     current_call = capture[0]
 
@@ -160,23 +124,15 @@ def print_method_dataframe_with_queries(query):
     call_name = get_code_string(current_call.start_point, current_call.end_point)  # name of the method call
     #print(call_name)
 
-    """if function is None and class_d is None and parent.parent is None:      # method is a global variable
-      method_calls = method_dict['global'][0]
-      method_calls.append(call_name)
-      method_dict['global'][0] = method_calls      # update global method_calls
-      continue"""
-
     if function is not None:
       name_node = function.child_by_field_name('name')    
       parameters_node = function.child_by_field_name('parameters')
       function_name = get_code_string(name_node.start_point, name_node.end_point) + get_code_string(parameters_node.start_point, parameters_node.end_point)
-      # Use this if you only want the signature of the function (ex: fuel_up(parameters), main(), ...)
-      function_definition = get_code_string(function.start_point, function.end_point)  # Use this if you want the entire function definition (ex: fuel_up(){...})
-      method_defintion[function_name] = [function_definition]   # adds function defintion into a dictionary
+      function_definition = get_code_string(function.start_point, function.end_point)
     else:
       function_name = None
       function_definition = None
-    if class_d is not None:                     # This is unused code, but it stores name and defintion of the class closest to the method call
+    if class_d is not None:
       name_node = class_d.child_by_field_name('name')
       class_name = get_code_string(name_node.start_point, name_node.end_point)
       class_definition = get_code_string(class_d.start_point, class_d.end_point)
@@ -189,22 +145,16 @@ def print_method_dataframe_with_queries(query):
       method_calls.append(call_name)
       method_dict[function_name][0] = method_calls
     else:                                           # function is not in the dataframe/dictionary, initialize its list of method calls
-      method_dict[function_name] = [[call_name], class_name]    # making it a list of lists solve the problem with the lists being of different lengths
+      method_dict[function_name] = [[call_name], class_name, function_definition]    # making it a list of lists solve the problem with the lists being of different lengths
 
       
   df = pd.DataFrame(method_dict)  
-  df2 = pd.DataFrame(method_defintion) # creates the method_defintion dict into a dataframe
-  print('Function_defintion: ', method_defintion)
-  df = pd.concat([df,df2],ignore_index=True)   # concats the defintion to the main dataframe
   columns = list(df)
   for i in columns:
     print(i, df[i][0], df[i][1], df[i][2])
 
-  csv_file = open('test_py.csv', 'w+')  # writes the dataframe to a csv file (this test is for test.py)
+  csv_file = open(filepath + '.csv', 'w+')  # writes the dataframe to a csv file (this test is for test.py)
   df.to_csv(csv_file)   # csv may be annoying to look at since method defintion takes up a lot of space
-
-  #for call in method_dict.items():
-    #print(call)
 
 def main():
   global filepath
