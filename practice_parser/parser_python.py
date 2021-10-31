@@ -1,9 +1,12 @@
 import re
 import sys
+import pandas as pd
 
 # Code file and output file from tree-sitter passed in from the command line
 output_file = sys.argv[2]
 test_file = sys.argv[1]
+
+
 
 # Python names for functions/calls based on tree-sitter output
 function = 'call'
@@ -64,9 +67,16 @@ with open(output_file, 'r') as tree:
 
 
     # Prints out the method definitions and their calls
-    for line in calls2:
-        print(line.strip())
-        print(calls2[line])
+    # for line in calls2:
+    #     print(line.strip())
+    #     print(calls2[line])
+
+    function_list = []
+    for val in calls2:
+        function_list.append([val, calls2[val]])
+
+    data = pd.DataFrame(function_list, columns=['Function Names', 'Function Calls'])
+    print(data)
 
 
 
