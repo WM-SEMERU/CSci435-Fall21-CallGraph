@@ -53,6 +53,8 @@ def main():
         car.check_brand()
         car.fuel_up()
 
+car = Vehicle('Honda','Accord', type)
+car.check_brand()
 
 if __name__ == '__main__':
     main()
