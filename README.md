@@ -18,7 +18,7 @@ Then, make sure you have the latest version of tree-sitter's python library inst
     pip install tree-sitter
 ```
 
-Our current working version will creeate call graphs for singular Python and Java files. So, for tree-sitter to parse the code you will need the grammars' for both Python and Java installed in the ```vendor``` folder.
+Our current working version will create call graphs for singular Python and Java files. So, for tree-sitter to parse the code you will need the grammars' for both Python and Java installed in the ```vendor``` folder.
 in the repository's folder navigate to the ```vendor``` folder:
 ```
     cd vendor
@@ -28,6 +28,10 @@ Then clone the grammar's for Python and Java using:
 ```
     git clone https://github.com/tree-sitter/tree-sitter-python.git
     git clone https://github.com/tree-sitter/tree-sitter-java.git
+```
+Finally, build the languages into libraries that is usable from Python.
+```
+python build_languages.py
 ```
 
 # Executing the code
