@@ -9,35 +9,26 @@ There are plenty of tools available for generating these Call Graphs for softwar
 # Installation
 
 First, clone our repository onto your local machine using:
-```
+```bash
     git clone git@github.com:WM-SEMERU/CSci435-Fall21-CallGraph.git
 ```
 
 Then, make sure you have the latest version of tree-sitter's python library installed using:
-```
+```bash
     pip install tree-sitter
 ```
 
-Our current working version will create call graphs for singular Python and Java files. So, for tree-sitter to parse the code you will need the grammars' for both Python and Java installed in the ```vendor``` folder.
-in the repository's folder navigate to the ```vendor``` folder:
-```
-    cd vendor
-```
-
-Then clone the grammar's for Python and Java using:
-```
-    git clone https://github.com/tree-sitter/tree-sitter-python.git
-    git clone https://github.com/tree-sitter/tree-sitter-java.git
-```
-Finally, build the languages into libraries that is usable from Python.
-```
+Our current working version will creeate call graphs for singular Python and Java files. So, for tree-sitter to parse the code you will need the grammars' for both Python and Java installed in the ```vendor``` folder.
+This can be done by running the build_languages.py file with the following command:
+```bash
 python build_languages.py
 ```
+This will create the ```build/``` directory and the ```my-languages.so``` file that tree-sitter uses to parse the languages.
 
 # Executing the code
 
 The the code can be executed using:
-```
+```bash
     python parser_with_input.py test.py > test.csv
 ```
 Where ```test.py``` is the python or java file you want a call graph for. The call graph is then saved as ```test.csv```
