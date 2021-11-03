@@ -3,21 +3,10 @@ import os
 import pandas as pd
 from tree_sitter import Language, Parser
 
-
-"""tree sitter setup code"""
-Language.build_library(
-    'build/my-languages.so',
-    [
-        'vendor/tree-sitter-python',
-        'vendor/tree-sitter-java'
-    ]
-)
-
 PY_LANGUAGE = Language('build/my-languages.so', 'python')
 JAVA_LANGUAGE = Language('build/my-languages.so', 'java') 
 
 parser = Parser()
-"""----------------------"""
 
 lang = {
     "python": ["function_definition", "class_definition"],
