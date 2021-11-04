@@ -3,13 +3,14 @@ import os
 import git
 
 def main():
-    folder_path = os.path.dirname(__file__)+"\\vendor"
+    path = os.path.dirname(__file__)
+    folder_path = os.path.join(path, "vendor")
     if not os.path.exists(folder_path):
         os.mkdir(folder_path)
-    repository_path = folder_path+"\\tree-sitter-python"
+    repository_path = os.path.join(folder_path, "tree-sitter-python")
     if not os.path.exists(repository_path):
         git.Repo.clone_from("https://github.com/tree-sitter/tree-sitter-python", repository_path)
-    repository_path = folder_path+"\\tree-sitter-java"
+    repository_path = os.path.join(folder_path,"tree-sitter-java")
     if not os.path.exists(repository_path):
         git.Repo.clone_from("https://github.com/tree-sitter/tree-sitter-java", repository_path)
     
