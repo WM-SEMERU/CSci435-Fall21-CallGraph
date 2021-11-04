@@ -100,7 +100,7 @@ def print_method_dataframe_with_queries(query):
 
   df = pd.DataFrame(method_dict)  
 
-  print(df.to_csv(sep = '\n'))   # csv may be annoying to look at since method defintion takes up a lot of space
+  print(df.to_csv(sep = '\t'))   # csv may be annoying to look at since method defintion takes up a lot of space
 
 def main():
   global filepath
