@@ -1,5 +1,4 @@
 import sys
-import os
 import pandas as pd
 from tree_sitter import Language, Parser
 
@@ -74,7 +73,7 @@ def print_method_dataframe_with_queries(query):
       method_dict['null'][0] = method_calls      # update global method_calls
       continue
 
-    if function is not None:
+    if function is not None:        # finds the function name if it is there
       name_node = function.child_by_field_name('name')    
       parameters_node = function.child_by_field_name('parameters')
       function_name = get_code_string(name_node.start_point, name_node.end_point) + get_code_string(parameters_node.start_point, parameters_node.end_point)
@@ -82,13 +81,11 @@ def print_method_dataframe_with_queries(query):
     else:
       function_name = 'null'
       function_definition = 'null'
-    if class_d is not None:
+    if class_d is not None:         # finds the class name if it is there
       name_node = class_d.child_by_field_name('name')
       class_name = get_code_string(name_node.start_point, name_node.end_point)
-      class_definition = get_code_string(class_d.start_point, class_d.end_point)
     else:
       class_name = 'null'
-      class_definition = 'null'
 
     if function_name in method_dict.keys():         # Since the function is already in the dataframe/dictionary, get the list of method calls, 
       method_calls = method_dict[function_name][0] # append the current method call, and reinitialize the method call list
@@ -100,7 +97,7 @@ def print_method_dataframe_with_queries(query):
 
   df = pd.DataFrame(method_dict)  
 
-  print(df.to_csv(sep = '\t'))   # csv may be annoying to look at since method defintion takes up a lot of space
+  print(df.to_csv(sep = ','))   # csv may be annoying to look at since method defintion takes up a lot of space
 
 def main():
   global filepath
