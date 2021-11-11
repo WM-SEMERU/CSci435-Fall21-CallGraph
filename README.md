@@ -6,6 +6,33 @@ Graphs are a great way of representing complex relationships in all types of dat
 ## Project Goal
 There are plenty of tools available for generating these Call Graphs for software systems. However, they are disconnected from each other, one only working on Java, one only generating XML format working in another language. Others only allow for using a GUI to operate making it difficult to use at scale. The main vision of this project is to create a tool that can generate Call Graphs of different software systems, regardless of language, in a format that can easily be used by current GNNs. This tool should be easy to use and extend allowing for researchers to easily use them for training these GNNs. Your mission, should you choose to accept it, will be to build this tool and if time permits to test it on some GNN models!
 
+# Installation
+
+First, clone our repository onto your local machine using:
+```bash
+    git clone git@github.com:WM-SEMERU/CSci435-Fall21-CallGraph.git
+```
+
+Then, make sure you have the latest version of tree-sitter's python library installed using:
+```bash
+    pip install tree-sitter
+```
+
+Our current working version will creeate call graphs for singular Python and Java files. So, for tree-sitter to parse the code you will need the grammars' for both Python and Java installed in the ```vendor``` folder.
+This can be done by running the build_languages.py file with the following command:
+```bash
+python build_languages.py
+```
+This will create the ```build/``` directory and the ```my-languages.so``` file that tree-sitter uses to parse the languages.
+
+# Executing the code
+
+The the code can be executed using:
+```bash
+    python parser_with_input.py test.py > test.csv
+```
+Where ```test.py``` is the python or java file you want a call graph for. The call graph is then saved as ```test.csv```
+
 ## Resources
 
 - [Tree-Sitter Programming Language Parser](https://github.com/tree-sitter/tree-sitter)
