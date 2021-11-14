@@ -116,8 +116,7 @@ def parse_file(filepath):
     try:
         file = open(src_path, 'r', encoding='utf-8')
     except FileNotFoundError:
-        print('Could not open file: %s\nExiting...' % src_path)
-        sys.exit(1)
+        exit_with_message('Could not open file: %s' % src_path)
     global lines, src_code, key
     src_code = file.read()
     lines = src_code.split('\n')
@@ -132,8 +131,7 @@ def parse_file(filepath):
 def parse_directory(dir_path):
     src_path = dir_path
     if not os.path.isdir(src_path):
-        print('Could not find directory: %s\nExiting...' % src_path)
-        sys.exit(1)
+        exit_with_message('Could not find directory: %s' % src_path)
     for subdir,dir,files in os.walk(src_path):
         for filename in files:
             filepath = os.path.join(subdir,filename)
@@ -146,24 +144,43 @@ def parse_repo(link):
     repo_name = link.split('/')[-1].replace('.git','')
     repo_path = os.path.join(os.path.dirname(__file__), repo_name)
     if not os.path.exists(repo_path):
-        git.Repo.clone_from(link, repo_path)
+        try:
+            git.Repo.clone_from(link, repo_path)
+        except:
+            exit_with_message("Given repository link'%s' does not exist", link)
     parse_directory(repo_path)
 
 argparser = argparse.ArgumentParser(description='interpret type of parsing')
+argparser.add_argument('language')
 argparser.add_argument('-f', '--file')
 argparser.add_argument('-d', '--directory')
 argparser.add_argument('-r', '--repository')
+
+def exit_with_message(message):
+    print(message)
+    print("Exiting...")
+    sys.exit(1)
 
 def main():
     args = argparser.parse_args(sys.argv[1:])
     print(args)
     
+    if args.language == 'python' or args.language == 'py':
+        pass
+    elif args.language == 'java' or args.language == 'jv':
+        pass
+    else:
+        exit_with_message("No language specified or the language is not supported. Exiting...")
+
     if args.file is not None:
         parse_file(args.file)
     elif args.directory is not None:
         parse_directory(args.directory)
     elif args.repository is not None:
         parse_repo(args.repository)
+    else:
+        exit_with_message("No File, Directory, or Repository passed as argument.")
+    
     print(method_df)
     print(edge_df)
 
