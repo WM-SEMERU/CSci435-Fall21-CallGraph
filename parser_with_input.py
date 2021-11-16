@@ -2,6 +2,7 @@ import sys, os, argparse
 import git
 from pandas import DataFrame
 from tree_sitter import Language, Parser
+import Language
 
 PY_LANGUAGE = Language('build/my-languages.so', 'python')
 JAVA_LANGUAGE = Language('build/my-languages.so', 'java') 
