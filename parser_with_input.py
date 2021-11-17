@@ -48,6 +48,8 @@ edge_dict = {
     'call_line': []
 }
 
+src_path = ''
+
 # Pre: the start_point and end_point values of a node
 # Post: return the substring of the source that the start_point and end_point point to
 def node_to_string(node) -> str:
@@ -130,6 +132,8 @@ def edge(calls, parent):
                 edge_dict['call_line'].append(line)
 
 def parse_file(filepath):
+    global lines, src_code, key
+    src_path = filepath
     try:
         file = open(filepath, 'r', encoding='utf-8')
     except FileNotFoundError:
