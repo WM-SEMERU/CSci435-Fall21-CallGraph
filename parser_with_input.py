@@ -32,7 +32,7 @@ class LanguageData:
             """)
             self.call_q = self.language_library.query("""
             (method_invocation) @method
-            (object_creation_expression) @method
+            (object_creation_expression) @method 
             """)
         else:
             raise ValueError("Unknown language: %s" % language)
@@ -95,7 +95,39 @@ def add_methods_and_imports(filepath):
     file_dict[filepath] = [file_list, (len(method_nodes) - len(cur_method_nodes), len(method_nodes))]
 
 def add_edges(filepath):
-    pass
+    tree = lang.PARSER.parse(bytes(src_code, "utf8"))
+    query = lang.method_import_q
+    captures = query.captures(tree.root_node)
+    cur_method_nodes = [node[0] for node in captures if node[1] == 'method']
+    query = lang.call_q
+    for node in cur_method_nodes:
+        captures = query.captures(node)
+        call_nodes = [call[0] for call in captures if call[1] == 'call']
+        calls = [node_to_string(call) for call in call_nodes]
+        parent = lines[node.start_point[0]][node.start_point[1]:]
+        parent = parent.split('(')[0].split()[-1]
+        edge(calls, parent)
+
+def edge(calls, parent):
+    called_index = 0
+    for i in range(len(method_dict['method'])):
+        method = method_dict['method'][i].split()[1]
+        method = method.split('(')[0]
+        if parent == method:
+            called_index = i
+            break
+    for call in calls:
+        line = call
+        call = call.split('(')[0]
+        if '.' in call:
+            call = call.split('.')[1]
+        for i in range(len(method_dict['method'])):
+            method = method_dict['method'][i].split()[1]
+            method = method.split('(')[0]
+            if call == method:
+                edge_dict['callee_index'].append(i)
+                edge_dict['called_index'].append(called_index)
+                edge_dict['call_line'].append(line)
 
 def parse_file(filepath):
     try:
@@ -128,7 +160,7 @@ def parse_repo(link):
         try:
             git.Repo.clone_from(link, repo_path)
         except:
-            exit_with_message("Given repository link'%s' does not exist", link)
+            exit_with_message("Given repository link'%s' does not exist" % link)
     parse_directory(repo_path)
 
 argparser = argparse.ArgumentParser(description='interpret type of parsing')
@@ -136,6 +168,7 @@ argparser.add_argument('language')
 argparser.add_argument('-f', '--file')
 argparser.add_argument('-d', '--directory')
 argparser.add_argument('-r', '--repository')
+argparser.add_argument('-o', '--output')
 
 def exit_with_message(message):
     print(message)
@@ -146,14 +179,17 @@ def main():
     args = argparser.parse_args(sys.argv[1:])
     global lang
     lang = LanguageData(args.language)
+    path = ''
 
     if args.file is not None:
         parse_file(args.file)
         add_methods_and_imports(args.file)
         add_edges(args.file)
     elif args.directory is not None:
+        path = args.file
         parse_directory(args.directory)
     elif args.repository is not None:
+        path = args.repository
         parse_repo(args.repository)
     else:
         exit_with_message("No File, Directory, or Repository passed as argument.")
@@ -162,6 +198,15 @@ def main():
     print(method_df)
     edge_df = DataFrame(edge_dict)
     print(edge_df)
+
+    output = args.output
+    if output is None:
+        output = os.path.split(path)[1].split('.')[0]
+    # print(method_df)
+    # print(edge_df)
+    # print(output)
+    DataFrame.from_dict(method_df).to_csv(output + '_method.csv')
+    DataFrame.from_dict(edge_df).to_csv(output + '_edge.csv')
 
 if __name__ == '__main__':
     main()
