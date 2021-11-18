@@ -123,6 +123,7 @@ def parse_directory(dir_path):
 
 def parse_repo(link):
     repo_name = link.split('/')[-1].replace('.git','')
+    path = repo_name
     repo_path = os.path.join(os.path.dirname(__file__), repo_name)
     if not os.path.exists(repo_path):
         try:
@@ -146,14 +147,15 @@ def main():
     args = argparser.parse_args(sys.argv[1:])
     global lang
     lang = LanguageData(args.language)
-    path = ''
+    global path
 
     if args.file is not None:
+        path = args.file
         parse_file(args.file)
         add_methods_and_imports()
         add_edges()
     elif args.directory is not None:
-        path = args.file
+        path = args.directory
         parse_directory(args.directory)
     elif args.repository is not None:
         path = args.repository
@@ -166,12 +168,11 @@ def main():
     print(method_df)
     edge_df = DataFrame(edge_dict)
     print(edge_df)
-
     output = args.output
-    if output is not None:
+    if output == None:
         output = os.path.split(path)[1].split('.')[0]
-        DataFrame.from_dict(method_df).to_csv(output + '_method.csv')
-        DataFrame.from_dict(edge_df).to_csv(output + '_edge.csv')
+    method_df.to_csv(output + '_method.csv')
+    edge_df.to_csv(output + '_edge.csv')
     
 
 if __name__ == '__main__':
