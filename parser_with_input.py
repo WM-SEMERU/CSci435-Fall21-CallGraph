@@ -95,37 +95,6 @@ def add_edges():
                 edge_dict['call_line'].append(call_line)
             #else:
                 #print("Could not find %s call" % call_name)
-                """
-    tree = lang.PARSER.parse(bytes(src_code, "utf8"))
-    query = lang.method_import_q
-    captures = query.captures(tree.root_node)
-    cur_method_nodes = [node[0] for node in captures if node[1] == 'method']
-    query = lang.call_q
-    for node in cur_method_nodes:
-        captures = query.captures(node)
-        call_nodes = [call[0] for call in captures if call[1] == 'call']
-        calls = [node_to_string(call) for call in call_nodes]
-        parent = node_to_string(node.child_by_field_name('name'))
-        edge(calls, parent)
-
-def edge(calls, parent):
-    called_index = 0
-    for i in range(len(method_dict['method'])):
-        method_def = method_dict['method'][i]
-        method_name = method_def[:method_def.index('(')].split()[-1].split('.')[-1]
-        if parent == method_name:
-            called_index = i
-            break
-    for call in calls:
-        line = call
-        call = line[:line.index('(')].split()[-1].split('.')[-1]
-        for i in range(len(method_dict['method'])):
-            method_def = method_dict['method'][i]
-            method_name = method_def[:method_def.index('(')].split()[-1].split('.')[-1]
-            if call == method_name:
-                edge_dict['callee_index'].append(i)
-                edge_dict['called_index'].append(called_index)
-                edge_dict['call_line'].append(line)"""
 
 def parse_file(path):
     try:
