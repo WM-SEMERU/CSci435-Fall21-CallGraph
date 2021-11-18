@@ -64,6 +64,38 @@ def add_methods_and_imports():
     file_dict[filepath] = [file_list, (len(method_nodes) - len(cur_method_nodes), len(method_nodes))]
 
 def add_edges():
+    query = lang.call_q
+    method_range = file_dict[filepath][1]
+    imports = file_dict[filepath][0]
+    for index in range(method_range[0], method_range[1]):
+        call_line = -1
+        callee_index = index
+
+        node = method_nodes[index]
+        calls = [call[0] for call in query.captures(node)]
+        for call in calls:
+            called_index = -1
+            call_line = call.start_point[0] - node.start_point[0]
+            call_name = ""
+            if lang.language == 'python':
+                call_name = node_to_string(call.children[0]) if len(call.children[0].children) == 0 else node_to_string(call.children[0].children[-1]) 
+            for file in imports:
+                rang = file_dict[file][1]
+                for jindex in range(rang[0], rang[1]):
+                    method_name = method_dict['method'][jindex]
+                    method_name = method_name[:method_name.index('(')].split()[-1]
+                    if call_name == method_name:
+                        called_index = jindex
+                        break
+                if called_index != -1:
+                    break
+            if called_index != -1:
+                edge_dict['callee_index'].append(callee_index)
+                edge_dict['called_index'].append(called_index)
+                edge_dict['call_line'].append(call_line)
+            #else:
+                #print("Could not find %s call" % call_name)
+                """
     tree = lang.PARSER.parse(bytes(src_code, "utf8"))
     query = lang.method_import_q
     captures = query.captures(tree.root_node)
@@ -93,7 +125,7 @@ def edge(calls, parent):
             if call == method_name:
                 edge_dict['callee_index'].append(i)
                 edge_dict['called_index'].append(called_index)
-                edge_dict['call_line'].append(line)
+                edge_dict['call_line'].append(line)"""
 
 def parse_file(path):
     try:

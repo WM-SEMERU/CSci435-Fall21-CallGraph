@@ -51,11 +51,14 @@ class TestCSV(unittest.TestCase):
     def test_function_exist(self):
         pass_test = True
         for index, row in self.edge_df.iterrows():
-            indx = row['called_index']
+            indx = row['callee_index']
             line = row['call_line']
             # get rid of \n as this would cause lines that were called to not be 
             # checked due to indentations
-            if(line.replace('\n','') in self.method_df['method'][indx].replace('\n','')):
+
+            method = self.method_df['method'][indx]
+            call = method.split('\n')[line]
+            if(call in method):
                 continue
             else:
                 pass_test = False
