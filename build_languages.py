@@ -1,6 +1,7 @@
 from tree_sitter import Language
 import os
 import git
+from pathlib import Path
 
 def main():
     path = os.path.dirname(__file__)
