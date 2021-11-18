@@ -2,7 +2,7 @@ import sys, os, argparse
 import git
 from pandas import DataFrame
 from tree_sitter import Language, Parser
-import LanguageData
+from LanguageData import LanguageData
 
 method_dict = {
     'method': []
@@ -29,7 +29,7 @@ def node_to_string(node) -> str:
     ret += "\n" + lines[end_point[0]][:end_point[1]]
     return ret
 
-def add_methods_and_imports(filepath):
+def add_methods_and_imports():
     tree = lang.PARSER.parse(bytes(src_code, "utf8"))
     query = lang.method_import_q
     captures = query.captures(tree.root_node)
@@ -63,7 +63,7 @@ def add_methods_and_imports(filepath):
             file_list.append(import_path)
     file_dict[filepath] = [file_list, (len(method_nodes) - len(cur_method_nodes), len(method_nodes))]
 
-def add_edges(filepath):
+def add_edges():
     tree = lang.PARSER.parse(bytes(src_code, "utf8"))
     query = lang.method_import_q
     captures = query.captures(tree.root_node)
@@ -98,31 +98,31 @@ def edge(calls, parent):
                 edge_dict['called_index'].append(called_index)
                 edge_dict['call_line'].append(line)
 
-def parse_file(filepath):
-    global lines, src_code, key
-    src_path = filepath
+def parse_file(path):
     try:
-        file = open(filepath, 'r', encoding='utf-8')
+        with open(path, 'r', encoding='utf-8') as file:
+            global lines, src_code, filepath
+            src_code = file.read()
+            lines = src_code.split('\n')
+            filepath = path
     except FileNotFoundError:
-        exit_with_message('Could not open file: %s' % filepath)
-    global lines, src_code
-    src_code = file.read()
-    lines = src_code.split('\n')
+        exit_with_message('Could not open file: %s' % path)
+    
 
 def parse_directory(dir_path):
     src_path = dir_path
     if not os.path.isdir(src_path):
-        exit_with_message('Could not find directory: %s' % src_path)
+        exit_with_message(f'Could not find directory: {src_path}')
     walk = os.walk(src_path)
     for subdir,dir,files in walk:
         for filename in files:
-            filepath = os.path.join(subdir,filename)
+            path = os.path.join(subdir,filename)
             if filename.endswith(lang.extension):
-                parse_file(filepath)
-                add_methods_and_imports(filepath)
-    for filepath in file_dict.keys():
-        parse_file(filepath)
-        add_edges(filepath)
+                parse_file(path)
+                add_methods_and_imports()
+    for path in file_dict:
+        parse_file(path)
+        add_edges()
 
 def parse_repo(link):
     repo_name = link.split('/')[-1].replace('.git','')
@@ -131,7 +131,7 @@ def parse_repo(link):
         try:
             git.Repo.clone_from(link, repo_path)
         except:
-            exit_with_message("Given repository link'%s' does not exist" % link)
+            exit_with_message(f"Given repository link {link} does not exist")
     parse_directory(repo_path)
 
 argparser = argparse.ArgumentParser(description='interpret type of parsing')
@@ -142,8 +142,7 @@ argparser.add_argument('-r', '--repository')
 argparser.add_argument('-o', '--output')
 
 def exit_with_message(message):
-    print(message)
-    print("Exiting...")
+    print(f"{message} Exiting...")
     sys.exit(1)
 
 def main():
@@ -154,8 +153,8 @@ def main():
 
     if args.file is not None:
         parse_file(args.file)
-        add_methods_and_imports(args.file)
-        add_edges(args.file)
+        add_methods_and_imports()
+        add_edges()
     elif args.directory is not None:
         path = args.file
         parse_directory(args.directory)
@@ -165,19 +164,18 @@ def main():
     else:
         exit_with_message("No File, Directory, or Repository passed as argument.")
     
+
     method_df = DataFrame(method_dict)
     print(method_df)
     edge_df = DataFrame(edge_dict)
     print(edge_df)
 
     output = args.output
-    if output is None:
+    if output is not None:
         output = os.path.split(path)[1].split('.')[0]
-    # print(method_df)
-    # print(edge_df)
-    # print(output)
-    DataFrame.from_dict(method_df).to_csv(output + '_method.csv')
-    DataFrame.from_dict(edge_df).to_csv(output + '_edge.csv')
+        DataFrame.from_dict(method_df).to_csv(output + '_method.csv')
+        DataFrame.from_dict(edge_df).to_csv(output + '_edge.csv')
+    
 
 if __name__ == '__main__':
     main()
