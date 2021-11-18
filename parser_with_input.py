@@ -73,27 +73,24 @@ def add_edges():
         captures = query.captures(node)
         call_nodes = [call[0] for call in captures if call[1] == 'call']
         calls = [node_to_string(call) for call in call_nodes]
-        parent = lines[node.start_point[0]][node.start_point[1]:]
-        parent = parent.split('(')[0].split()[-1]
+        parent = node_to_string(node.child_by_field_name('name'))
         edge(calls, parent)
 
 def edge(calls, parent):
     called_index = 0
     for i in range(len(method_dict['method'])):
-        method = method_dict['method'][i].split()[1]
-        method = method.split('(')[0]
-        if parent == method:
+        method_def = method_dict['method'][i]
+        method_name = method_def[:method_def.index('(')].split()[-1].split('.')[-1]
+        if parent == method_name:
             called_index = i
             break
     for call in calls:
         line = call
-        call = call.split('(')[0]
-        if '.' in call:
-            call = call.split('.')[1]
+        call = line[:line.index('(')].split()[-1].split('.')[-1]
         for i in range(len(method_dict['method'])):
-            method = method_dict['method'][i].split()[1]
-            method = method.split('(')[0]
-            if call == method:
+            method_def = method_dict['method'][i]
+            method_name = method_def[:method_def.index('(')].split()[-1].split('.')[-1]
+            if call == method_name:
                 edge_dict['callee_index'].append(i)
                 edge_dict['called_index'].append(called_index)
                 edge_dict['call_line'].append(line)

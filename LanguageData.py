@@ -14,7 +14,7 @@ class LanguageData:
             """)
             self.call_q = self.language_library.query("""
             (call) @call
-            (lambda) @lambda
+            (lambda) @call
             """)
         elif language == 'java' or language == 'jv':
             self.language = 'java'
@@ -27,8 +27,8 @@ class LanguageData:
             (import_declaration) @import 
             """)
             self.call_q = self.language_library.query("""
-            (method_invocation) @method
-            (object_creation_expression) @method 
+            (method_invocation) @call
+            (object_creation_expression) @call 
             """)
         else:
             raise ValueError("Unknown language: %s" % language)
