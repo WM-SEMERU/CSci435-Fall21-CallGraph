@@ -4,16 +4,19 @@ import pandas as pd
 from tree_sitter import Language, Parser
 
 PY_LANGUAGE = Language('build/my-languages.so', 'python')
-JAVA_LANGUAGE = Language('build/my-languages.so', 'java') 
+JAVA_LANGUAGE = Language('build/my-languages.so', 'java')
+C_LANGUAGE = Language('build/my-languages.so', 'C')
 
 parser = Parser()
 
 lang = {
     "python": ["function_definition", "class_definition"],
-    "java": ["method_declaration", "class_declaration"]
+    "java": ["method_declaration", "class_declaration"],
+    "c": ["method_declaration", "class_declaration"]
   }
 
-# TODO method to parse python code
+# TODO method to parse python code`
+''
 def parse_python_with_queries():
   parser.set_language(PY_LANGUAGE)
   global tree
