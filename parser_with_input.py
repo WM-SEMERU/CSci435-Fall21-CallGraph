@@ -1,6 +1,7 @@
 import sys, os, argparse
 import git
 from pandas import DataFrame
+import build_languages
 from LanguageData import LanguageData
 
 method_dict = {
@@ -200,6 +201,9 @@ def exit_with_message(message):
 
 def main():
     args = argparser.parse_args(sys.argv[1:])
+    directory = os.path.dirname(__file__)
+    if not os.path.exists(os.path.join(directory, 'vendor')) or not os.path.exists(os.path.join(directory, 'build')):
+        build_languages.main()
     global lang
     lang = LanguageData(args.language)
     global path
