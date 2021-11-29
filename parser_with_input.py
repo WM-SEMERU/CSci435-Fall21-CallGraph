@@ -1,13 +1,13 @@
 import sys, os, argparse
 import git
 from pandas import DataFrame
-from tree_sitter import Language, Parser
 from LanguageData import LanguageData
 
 method_dict = {
     'method': []
 }
 method_nodes = []
+method_prints = []
 file_dict = {}
 edge_dict = {
     'callee_index': [],
@@ -29,6 +29,39 @@ def node_to_string(node) -> str:
     ret += "\n" + lines[end_point[0]][:end_point[1]]
     return ret
 
+def get_method_print(node):
+    if lang.language == 'python':
+        name = node_to_string(node.child_by_field_name('name'))
+        param_node = node.child_by_field_name('parameters')
+        if param_node is None:
+            nparams = 0
+        else:
+            params = param_node.children
+            nparams = (len(params) - 1) // 2
+            for param in params:
+                if node_to_string(param) == 'self':
+                    nparams -= 1
+        parent = node.parent
+        parent_class = None
+        while parent.type != 'module':
+            if parent.type == 'class_definition':
+                parent_class = node_to_string(parent.child_by_field_name('name'))
+                if name == '__init__':
+                    name = parent_class
+                break
+            parent = parent.parent
+    elif lang.language == 'java':
+        name = node_to_string(node.child_by_field_name('name'))
+        nparams = (len(node.child_by_field_name('parameters').children) - 1) // 2
+        parent = node.parent
+        parent_class = None
+        while parent.type != 'program':
+            if parent.type == 'class_declaration':
+                parent_class = node_to_string(parent.child_by_field_name('name'))
+                break
+            parent = parent.parent
+    return (name, nparams)
+
 def add_methods_and_imports():
     tree = lang.PARSER.parse(bytes(src_code, "utf8"))
     query = lang.method_import_q
@@ -38,6 +71,7 @@ def add_methods_and_imports():
 
     method_dict['method'].extend([node_to_string(node) for node in cur_method_nodes])
     method_nodes.extend(cur_method_nodes)
+    method_prints.extend([get_method_print(node) for node in cur_method_nodes])
     ## adds all files that the file imports to a list and the range of indexes in the method dictionary that point to that file
     import_nodes = [node[0] for node in captures if node[1] == 'import']
 
@@ -63,6 +97,31 @@ def add_methods_and_imports():
             file_list.append(import_path)
     file_dict[filepath] = [file_list, (len(method_nodes) - len(cur_method_nodes), len(method_nodes))]
 
+def get_call_print(node):
+    if lang.language == 'python':
+        # gets the name of the method call
+        func = node.child_by_field_name('function') 
+        try:
+            name = node_to_string(func) if func.type == 'identifier' else node_to_string(func.child_by_field_name('attribute'))
+        except Exception:
+            name = None
+        if node.child_by_field_name('arguments') is None:
+            print(filepath)
+            print(node.children)
+            print(node_to_string(node))
+        # gets the number of arguments passed to the method
+        nargs = (len(node.child_by_field_name('arguments').children) - 1) // 2
+    elif lang.language == 'java':
+        # gets the name of the method call
+        if node.type == 'method_invocation':
+            name = node_to_string(node.child_by_field_name('name'))
+        elif node.type == 'object_creation_expression':
+            name = node_to_string(node.child_by_field_name('type'))
+        # gets the number of arguments passed to the method
+        nargs = (len(node.child_by_field_name('arguments').children) - 1) // 2
+    
+    return (name, nargs)
+
 def add_edges():
     query = lang.call_q
     method_range = file_dict[filepath][1]
@@ -76,14 +135,11 @@ def add_edges():
         for call in calls:
             called_index = -1
             call_line = call.start_point[0] - node.start_point[0]
-            call_name = ""
-            if lang.language == 'python':
-                call_name = node_to_string(call.children[0]) if len(call.children[0].children) == 0 else node_to_string(call.children[0].children[-1]) 
+            call_name = get_call_print(call)
             for file in imports:
                 rang = file_dict[file][1]
                 for jindex in range(rang[0], rang[1]):
-                    method_name = method_dict['method'][jindex]
-                    method_name = method_name[:method_name.index('(')].split()[-1]
+                    method_name = method_prints[jindex]
                     if call_name == method_name:
                         called_index = jindex
                         break
@@ -93,8 +149,6 @@ def add_edges():
                 edge_dict['callee_index'].append(callee_index)
                 edge_dict['called_index'].append(called_index)
                 edge_dict['call_line'].append(call_line)
-            #else:
-                #print("Could not find %s call" % call_name)
 
 def parse_file(path):
     try:
