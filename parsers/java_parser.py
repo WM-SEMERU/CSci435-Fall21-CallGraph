@@ -1,4 +1,4 @@
-from call_parser import CallParser
+from parsers.call_parser import CallParser
 from tree_sitter import Language, Parser
 class JavaParser(CallParser):
     language = 'java'

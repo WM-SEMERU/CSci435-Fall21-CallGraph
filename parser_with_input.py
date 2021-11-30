@@ -2,8 +2,8 @@ import sys, os, argparse
 import git
 from pandas import DataFrame
 import build_languages
-from python_parser import PythonParser
-from java_parser import JavaParser
+from parsers.python_parser import PythonParser
+from parsers.java_parser import JavaParser
 from LanguageData import LanguageData
 
 method_dict = {
