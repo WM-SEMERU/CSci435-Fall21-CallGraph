@@ -4,7 +4,6 @@ from pandas import DataFrame
 import build_languages
 from parsers.python_parser import PythonParser
 from parsers.java_parser import JavaParser
-from LanguageData import LanguageData
 
 method_dict = {
     'method': []
