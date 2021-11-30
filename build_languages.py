@@ -14,12 +14,16 @@ def main():
     repository_path = os.path.join(folder_path,"tree-sitter-java")
     if not os.path.exists(repository_path):
         git.Repo.clone_from("https://github.com/tree-sitter/tree-sitter-java", repository_path)
-    
+    repository_path = os.path.join(folder_path,"tree-sitter-cpp")
+    if not os.path.exists(repository_path):
+        git.Repo.clone_from("https://github.com/tree-sitter/tree-sitter-cpp", repository_path)
+
     Language.build_library(
     'build/my-languages.so',
     [
         'vendor/tree-sitter-python',
-        'vendor/tree-sitter-java'
+        'vendor/tree-sitter-java',
+        'vendor/tree-sitter-cpp'
     ]
     )
 
