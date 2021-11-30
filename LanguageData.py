@@ -14,7 +14,6 @@ class LanguageData:
             """)
             self.call_q = self.language_library.query("""
             (call) @call
-            (lambda) @call
             """)
         elif language == 'java' or language == 'jv':
             self.language = 'java'
