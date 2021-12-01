@@ -15,7 +15,6 @@ class CppParser(CallParser):
             (call_expression) @call
             (declaration
                 declarator: (init_declarator) @call
-                declarator: (function_declarator) @call)
             """)
     
     def get_call_print(self,call):
