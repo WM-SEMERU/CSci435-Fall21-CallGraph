@@ -1,6 +1,6 @@
 import sys, os, argparse
 import build_languages
-from parser_with_input import parse_file, parse_directory, parse_repo, set_language
+import parser_with_input
 
 argparser = argparse.ArgumentParser(description='interpret type of parsing')
 argparser.add_argument('language')
@@ -15,18 +15,21 @@ def main(argv):
     if not os.path.exists(os.path.join(directory, 'vendor')) or not os.path.exists(os.path.join(directory, 'build')):
         build_languages.main()
 
-    set_language(args.language)
+    parser_with_input.set_language(args.language)
     
     method_df, edge_df = None, None
     if args.file is not None:
         path = args.file
-        method_df, edge_df = parse_file(args.file)
+        method_df, edge_df = parser_with_input.parse_file(args.file)
     elif args.directory is not None:
         path = args.directory
-        method_df, edge_df = parse_directory(args.directory)
+        method_df, edge_df = parser_with_input.parse_directory(args.directory)
     elif args.repository is not None:
         path = args.repository
-        method_df, edge_df = parse_repo(args.repository)
+        with open(".gitignore", "a") as f:
+            if not os.path.exists(path):
+                f.write(path)
+        method_df, edge_df = parser_with_input.parse_repo(args.repository)
     else:
         print("No File, Directory, or Repository passed as argument. Exiting...")
         exit(1)
