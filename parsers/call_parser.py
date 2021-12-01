@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
+import os
 class CallParser():
     __metaclass__ = ABC
-
+    src_code = ''
+    lines = []
+    filepath = ''
     @property
     @abstractmethod
     def language(self):
@@ -60,6 +63,6 @@ class CallParser():
     def get_method_print(self, method) -> tuple:
         pass
 
-    @abstractmethod
     def get_import_file(self, imp):
-        pass
+        file_to_search = self.node_to_string(imp)
+        return file_to_search.replace(".", os.sep) + self.extension

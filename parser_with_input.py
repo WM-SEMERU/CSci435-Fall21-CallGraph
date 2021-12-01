@@ -31,7 +31,7 @@ def add_methods_and_imports():
     file_list = [lang.filepath]
     for imp in import_nodes:
         file_to_search = lang.get_import_file(imp)
-        import_path = os.path.join(os.path.dirname(lang.filepath), file_to_search.replace(".", os.sep) + lang.extension)
+        import_path = os.path.join(os.path.dirname(lang.filepath), file_to_search)
         if os.path.exists(import_path):
             file_list.append(import_path)
     file_dict[lang.filepath] = [file_list, (len(method_dict['nodes']) - len(cur_method_nodes), len(method_dict['nodes']))]
@@ -67,10 +67,9 @@ def add_edges():
 def set_current_file(path):
     try:
         with open(path, 'r', encoding='utf-8') as file:
-            global lines, src_code, filepath
-            src_code = file.read()
-            lines = src_code.split('\n')
-            filepath = path
+            lang.src_code = file.read()
+            lang.lines = lang.src_code.split('\n')
+            lang.filepath = path
     except FileNotFoundError:
         exit_with_message(f'Could not open file: {path}')
 

@@ -8,7 +8,8 @@ class CppParser(CallParser):
     PARSER.set_language(language_library)
     method_import_q = language_library.query("""
             (function_definition) @method
-            (preproc_include) @import
+            (preproc_include
+                path: (string_literal) @import)
             """)
     call_q = language_library.query("""
             (call_expression) @call
@@ -18,10 +19,12 @@ class CppParser(CallParser):
             """)
     
     def get_call_print(self,call):
-        pass
+        print(call)
 
     def get_method_print(self, method):
         pass
 
     def get_import_file(self, imp):
-        pass
+        file_to_search = self.node_to_string(imp).strip('\"')
+        print(file_to_search)
+        return file_to_search

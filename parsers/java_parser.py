@@ -1,5 +1,6 @@
 from .call_parser import CallParser
 from tree_sitter import Language, Parser
+import os
 class JavaParser(CallParser):
     language = 'java'
     extension = '.java'
@@ -9,8 +10,12 @@ class JavaParser(CallParser):
     method_import_q = language_library.query("""
             (method_declaration) @method
             (constructor_declaration) @method
-            (import_declaration) @import 
+            (import_declaration 
+                (identifier) @import)
+            (import_declaration
+                (scoped_identifier) @import)
             """)
+            
     call_q = language_library.query("""
             (method_invocation) @call
             (object_creation_expression) @call 
@@ -38,7 +43,6 @@ class JavaParser(CallParser):
             parent = parent.parent
         return (name, nparams)
 
-    def get_import_file(self, imp):
-        for child in imp.children[1:]:
-                if child.type == 'identifier' or child.type == 'scoped_identifier':
-                    return self.node_to_string(child)
+    # def get_import_file(self, imp):
+    #     file_to_search = self.node_to_string(imp)
+    #     return file_to_search.replace(".", os.sep) + self.extension

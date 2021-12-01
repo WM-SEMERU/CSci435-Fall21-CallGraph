@@ -1,5 +1,6 @@
 from parsers.call_parser import CallParser
 from tree_sitter import Language, Parser
+import os
 class PythonParser(CallParser):
     language = 'python'
     extension = '.py'
@@ -8,8 +9,10 @@ class PythonParser(CallParser):
     PARSER.set_language(language_library)
     method_import_q = language_library.query("""
             (function_definition) @method
-            (import_statement) @import
-            (import_from_statement) @import
+            (import_statement
+                name: (dotted_name) @import)
+            (import_from_statement
+                module_name: (dotted_name) @import)
             """)
     call_q = language_library.query("""
             (call) @call
@@ -53,13 +56,6 @@ class PythonParser(CallParser):
             parent = parent.parent
         return (name, nparams)
 
-    def get_import_file(self, imp):
-        node = imp.child_by_field_name('name')
-        if imp.type == 'import_statement':
-            if node.type == 'aliased_import':
-                file = self.node_to_string(node.child_by_field_name('name'))
-            else:
-                file = self.node_to_string(node)
-        elif imp.type == 'import_from_statement':
-            file = self.node_to_string(imp.child_by_field_name('module_name'))
-        return file
+    # def get_import_file(self, imp):
+    #     file_to_search = self.node_to_string(imp)
+    #     return file_to_search.replace(".", os.sep) + self.extension
