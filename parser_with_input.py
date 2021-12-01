@@ -2,7 +2,7 @@ import sys, os, argparse
 import git
 from pandas import DataFrame
 import build_languages
-from parsers import PythonParser, JavaParser, CppParser
+import parsers
 
 method_dict = {
     'method': []
@@ -109,11 +109,11 @@ def main():
         build_languages.main()
     global lang
     if args.language == 'python':
-        lang = PythonParser()
+        lang = parsers.PythonParser()
     elif args.language == 'java':
-        lang = JavaParser()
+        lang = parsers.JavaParser()
     elif args.language == 'cpp':
-        lang = CppParser()
+        lang = parsers.CppParser()
     global path
 
     if args.file is not None:
