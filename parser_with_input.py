@@ -1,19 +1,6 @@
-import sys, os, git
+import os, git
 from pandas import DataFrame
-import build_languages
 import parsers
-
-method_dict = {
-    'method': [],
-    'nodes': [],
-    'prints': []
-}
-file_dict = {}
-edge_dict = {
-    'callee_index': [],
-    'called_index': [],
-    'call_line': []
-}
 
 def add_methods_and_imports():
     tree = lang.PARSER.parse(bytes(lang.src_code, "utf8"))
@@ -64,17 +51,6 @@ def add_edges():
                 edge_dict['called_index'].append(called_index)
                 edge_dict['call_line'].append(call_line)
 
-def set_current_file(path):
-    try:
-        with open(path, 'r', encoding='utf-8') as file:
-            global lines, src_code, filepath
-            src_code = file.read()
-            lines = src_code.split('\n')
-            filepath = path
-    except FileNotFoundError:
-        exit_with_message(f'Could not open file: {path}')
-
-
 def set_language(language):
     global lang
     if language == 'python':
@@ -85,18 +61,20 @@ def set_language(language):
         lang = parsers.CppParser()
 
 def parse_file(path) -> DataFrame:
+    reset_graph()
     try:
         if lang is None:
             pass
     except NameError:
         exit_with_message("No language specified")
-    set_current_file(path)
+    lang.set_current_file(path)
     add_methods_and_imports()
     add_edges()
     return DataFrame({'method': method_dict['method']}), DataFrame(edge_dict)
     
 
 def parse_directory(dir_path) -> DataFrame:
+    reset_graph()
     try:
         if lang is None:
             pass
@@ -109,10 +87,10 @@ def parse_directory(dir_path) -> DataFrame:
         for filename in files:
             path = os.path.join(subdir,filename)
             if filename.endswith(lang.extension):
-                set_current_file(path)
+                lang.set_current_file(path)
                 add_methods_and_imports()
     for path in file_dict:
-        set_current_file(path)
+        lang.set_current_file(path)
         add_edges()
     return DataFrame({'method': method_dict['method']}), DataFrame(edge_dict)
 
@@ -130,6 +108,20 @@ def parse_repo(link) -> DataFrame:
         except Exception:
             exit_with_message(f"Given repository link {link} does not exist")
     return parse_directory(repo_path)
+
+def reset_graph():
+    global file_dict, method_dict, edge_dict
+    file_dict = {}
+    method_dict = {
+        'method': [],
+        'nodes': [],
+        'prints': [],
+    }
+    edge_dict = {
+    'callee_index': [],
+    'called_index': [],
+    'call_line': [],
+    }
 
 def exit_with_message(message):
     print(f"{message} Exiting...")
