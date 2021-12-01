@@ -136,6 +136,7 @@ argparser.add_argument('language')
 argparser.add_argument('-f', '--file')
 argparser.add_argument('-d', '--directory')
 argparser.add_argument('-r', '--repository')
+argparser.add_argument('-o', '--output')
 
 def exit_with_message(message):
     print(message)
