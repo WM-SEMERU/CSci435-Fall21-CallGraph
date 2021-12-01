@@ -1,14 +1,13 @@
-import sys, os, argparse
-import git
+import sys, os, git
 from pandas import DataFrame
 import build_languages
 import parsers
 
 method_dict = {
-    'method': []
+    'method': [],
+    'nodes': [],
+    'prints': []
 }
-method_nodes = []
-method_prints = []
 file_dict = {}
 edge_dict = {
     'callee_index': [],
@@ -24,8 +23,8 @@ def add_methods_and_imports():
     cur_method_nodes = [node[0] for node in captures if node[1] == 'method']
 
     method_dict['method'].extend([lang.node_to_string(node) for node in cur_method_nodes])
-    method_nodes.extend(cur_method_nodes)
-    method_prints.extend([lang.get_method_print(node) for node in cur_method_nodes])
+    method_dict['nodes'].extend(cur_method_nodes)
+    method_dict['prints'].extend([lang.get_method_print(node) for node in cur_method_nodes])
     ## adds all files that the file imports to a list and the range of indexes in the method dictionary that point to that file
     import_nodes = [node[0] for node in captures if node[1] == 'import']
 
@@ -35,7 +34,7 @@ def add_methods_and_imports():
         import_path = os.path.join(os.path.dirname(lang.filepath), file_to_search.replace(".", os.sep) + lang.extension)
         if os.path.exists(import_path):
             file_list.append(import_path)
-    file_dict[lang.filepath] = [file_list, (len(method_nodes) - len(cur_method_nodes), len(method_nodes))]
+    file_dict[lang.filepath] = [file_list, (len(method_dict['nodes']) - len(cur_method_nodes), len(method_dict['nodes']))]
 
 def add_edges():
     query = lang.call_q
@@ -45,7 +44,7 @@ def add_edges():
         call_line = -1
         callee_index = index
 
-        node = method_nodes[index]
+        node = method_dict['nodes'][index]
         calls = [call[0] for call in query.captures(node)]
         for call in calls:
             called_index = -1
@@ -54,7 +53,7 @@ def add_edges():
             for file in imports:
                 rang = file_dict[file][1]
                 for jindex in range(rang[0], rang[1]):
-                    method_name = method_prints[jindex]
+                    method_name = method_dict['prints'][jindex]
                     if call_name == method_name:
                         called_index = jindex
                         break
@@ -65,82 +64,73 @@ def add_edges():
                 edge_dict['called_index'].append(called_index)
                 edge_dict['call_line'].append(call_line)
 
-def parse_directory(dir_path):
-    src_path = dir_path
-    if not os.path.isdir(src_path):
-        exit_with_message(f'Could not find directory: {src_path}')
-    walk = os.walk(src_path)
-    for subdir,dir,files in walk:
+def set_current_file(path):
+    try:
+        with open(path, 'r', encoding='utf-8') as file:
+            global lines, src_code, filepath
+            src_code = file.read()
+            lines = src_code.split('\n')
+            filepath = path
+    except FileNotFoundError:
+        exit_with_message(f'Could not open file: {path}')
+
+
+def set_language(language):
+    global lang
+    if language == 'python':
+        lang = parsers.PythonParser()
+    elif language == 'java':
+        lang = parsers.JavaParser()
+    elif language == 'cpp':
+        lang = parsers.CppParser()
+
+def parse_file(path) -> DataFrame:
+    try:
+        if lang is None:
+            pass
+    except NameError:
+        exit_with_message("No language specified")
+    set_current_file(path)
+    add_methods_and_imports()
+    add_edges()
+    return DataFrame({'method': method_dict['method']}), DataFrame(edge_dict)
+    
+
+def parse_directory(dir_path) -> DataFrame:
+    try:
+        if lang is None:
+            pass
+    except NameError:
+        exit_with_message("No language specified")
+    if not os.path.isdir(dir_path):
+        exit_with_message(f'Could not find directory: {dir_path}')
+    walk = os.walk(dir_path)
+    for subdir,_,files in walk:
         for filename in files:
             path = os.path.join(subdir,filename)
             if filename.endswith(lang.extension):
-                lang.set_current_file(path)
+                set_current_file(path)
                 add_methods_and_imports()
     for path in file_dict:
-        lang.set_current_file(path)
+        set_current_file(path)
         add_edges()
+    return DataFrame({'method': method_dict['method']}), DataFrame(edge_dict)
 
-def parse_repo(link):
+def parse_repo(link) -> DataFrame:
+    try:
+        if lang is None:
+            pass
+    except NameError:
+        exit_with_message("No language specified")
     repo_name = link.split('/')[-1].replace('.git','')
-    path = repo_name
     repo_path = os.path.join(os.path.dirname(__file__), repo_name)
     if not os.path.exists(repo_path):
         try:
             git.Repo.clone_from(link, repo_path)
-        except:
+        except Exception:
             exit_with_message(f"Given repository link {link} does not exist")
-    parse_directory(repo_path)
-
-argparser = argparse.ArgumentParser(description='interpret type of parsing')
-argparser.add_argument('language')
-argparser.add_argument('-f', '--file')
-argparser.add_argument('-d', '--directory')
-argparser.add_argument('-r', '--repository')
-argparser.add_argument('-o', '--output')
+    return parse_directory(repo_path)
 
 def exit_with_message(message):
     print(f"{message} Exiting...")
-    sys.exit(1)
-
-def main():
-    args = argparser.parse_args(sys.argv[1:])
-    directory = os.path.dirname(__file__)
-    if not os.path.exists(os.path.join(directory, 'vendor')) or not os.path.exists(os.path.join(directory, 'build')):
-        build_languages.main()
-    global lang
-    if args.language == 'python':
-        lang = parsers.PythonParser()
-    elif args.language == 'java':
-        lang = parsers.JavaParser()
-    elif args.language == 'cpp':
-        lang = parsers.CppParser()
-    global path
-
-    if args.file is not None:
-        path = args.file
-        lang.set_current_file(args.file)
-        add_methods_and_imports()
-        add_edges()
-    elif args.directory is not None:
-        path = args.directory
-        parse_directory(args.directory)
-    elif args.repository is not None:
-        path = args.repository
-        parse_repo(args.repository)
-    else:
-        exit_with_message("No File, Directory, or Repository passed as argument.")
-    
-
-    method_df = DataFrame(method_dict)
-    print(method_df)
-    edge_df = DataFrame(edge_dict)
-    print(edge_df)
-    output = args.output
-    if output == None:
-        output = os.path.split(path)[1].split('.')[0]
-    method_df.to_csv(output + '_method.csv')
-    edge_df.to_csv(output + '_edge.csv')
-    
-
-if __name__ == '__main__':
-    main()
+    exit(1)
