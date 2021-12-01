@@ -14,7 +14,7 @@ class CppParser(CallParser):
     call_q = language_library.query("""
             (call_expression) @call
             (declaration
-                declarator: (init_declarator) @call
+                declarator: (init_declarator) @call)
             """)
     
     def get_call_print(self,call):
