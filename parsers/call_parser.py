@@ -10,7 +10,7 @@ class CallParser():
     def language(self):
         pass
 
-    property
+    @property
     @abstractmethod
     def extension(self):
         pass

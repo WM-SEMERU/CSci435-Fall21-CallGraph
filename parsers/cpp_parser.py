@@ -19,12 +19,23 @@ class CppParser(CallParser):
             """)
     
     def get_call_print(self,call):
-        print(call)
+        callf = call.child_by_field_name('function')
+        name = ''
+        if callf.type == 'identifier':
+            name = self.node_to_string(callf)
+        elif callf.type == 'qualified_identifier':
+            name = self.node_to_string(callf.child_by_field_name('name'))
+        else:
+            name = self.node_to_string(callf.child_by_field_name('field'))
+        nargs = (len(call.child_by_field_name('arguments').children) - 1)//2
+        return (name.split('<')[0],None)
+        
 
     def get_method_print(self, method):
-        pass
+        name = self.node_to_string(method.child_by_field_name('declarator')).split('(')[0]
+        nparams = (len(method.child_by_field_name('declarator').child_by_field_name('parameters').children) - 1)//2
+        return (name, nparams)
 
     def get_import_file(self, imp):
         file_to_search = self.node_to_string(imp).strip('\"')
-        print(file_to_search)
         return file_to_search

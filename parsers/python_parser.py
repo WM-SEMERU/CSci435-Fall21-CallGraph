@@ -27,11 +27,10 @@ class PythonParser(CallParser):
         except Exception:
             name = None
         if node.child_by_field_name('arguments') is None:
-            print(self.filepath)
-            print(node.children)
             print(self.node_to_string(node))
         # gets the number of arguments passed to the method
         nargs = (len(node.child_by_field_name('arguments').children) - 1) // 2
+        print(name)
         return (name, nargs)
     
     def get_method_print(self, method):
