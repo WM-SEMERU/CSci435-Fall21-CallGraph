@@ -46,6 +46,60 @@ Where ```/path/to/java/project``` is the python or java project directory you wa
 ```
 Where ```https://github.com/username/project.git``` is the python or java project repository you want a call graph for. The call graph is then saved as ```project_method.csv``` and ```project_edge.csv```.
 
+# Adding New Languages
+We have made our generator modulular so anyone, with a little effort can extned our work to support more languages. Visit the [tree-sitter documantation](https://tree-sitter.github.io/tree-sitter/#available-parsers) to view which languaages are available to parse. From that page navigate to the github of the grammar for the language you wish to add.
+
+## Build the new language
+Start by adding the new language to build_languages.py
+```python
+    def main():
+        path = os.path.dirname(__file__)
+        folder_path = os.path.join(path, "vendor")
+        if not os.path.exists(folder_path):
+            os.mkdir(folder_path)
+        repository_path = os.path.join(folder_path, "tree-sitter-python")
+        if not os.path.exists(repository_path):
+            git.Repo.clone_from("https://github.com/tree-sitter/tree-sitter-python", repository_path)
+        repository_path = os.path.join(folder_path,"tree-sitter-java")
+        if not os.path.exists(repository_path):
+            git.Repo.clone_from("https://github.com/tree-sitter/tree-sitter-java", repository_path)
+        repository_path = os.path.join(folder_path,"tree-sitter-cpp")
+        if not os.path.exists(repository_path):
+            git.Repo.clone_from("https://github.com/tree-sitter/tree-sitter-cpp", repository_path)
+        
+        Language.build_library(
+        'build/my-languages.so',
+        [
+            'vendor/tree-sitter-python',
+            'vendor/tree-sitter-java',
+            'vendor/tree-sitter-cpp'
+        ]
+        )
+```
+
+To clone the new language grammar add the following lines after the final ```if not``` statement and replace the github link with the one to the new grammar and the folder path to match the name of the repository. For example the following code would clone the C# grammar.
+```python
+        repository_path = os.path.join(folder_path,"tree-sitter-c-sharp")
+        if not os.path.exists(repository_path):
+            git.Repo.clone_from("https://github.com/tree-sitter/tree-sitter-c-sharp", repository_path
+```
+
+Finally add the path to the newly cloned grammar to the build_library command.
+```python
+    Language.build_library(
+        'build/my-languages.so',
+        [
+            'vendor/tree-sitter-python',
+            'vendor/tree-sitter-java',
+            'vendor/tree-sitter-cpp',
+            'vendor/tree-sitter-c-sharp'
+        ]
+        )
+```
+
+## Create Language Parser Class
+The ```parsers``` folder holds our language parser classes, which is responsible for holding all the language specific information. To add the new language create a new class and extend the CallParser class, located in the call_parser.py file. Each class must have fields to hold the language name, file extension, tree-sitter Language object, method_and_import query, and the call query. Queries are a way of interfacing with the tree-sitter library to grab all the instances of a certian tag in a given code block. For the method_and_import query. You need to find out what the languages calls its method definitions (it may treat constructors differently, see java for an example) and import statements and attach them to the method and import tags respectively. Likewise for the call queries you need to find out what the language calls method calls and if it treats constructor calls differently. To get this information you can paste an example file into the [tree-sitter playground](https://tree-sitter.github.io/tree-sitter/playground). For more information on queries, look at the [tree-sitter documentaion](https://tree-sitter.github.io/tree-sitter/using-parsers#query-syntax). The CallParser class has a few abstract methods that you will need to create and implement ```get_call_print(self, call)``` and ```get_method_print(self, method)```. You can view the comments in the call_parser.py to get more information on how to implement these methods. Note that depending on how the language handles imports you will need to override the ```get_import_file``` function (see cpp_parser.py). 
+
 ## Resources
 
 - [Tree-Sitter Programming Language Parser](https://github.com/tree-sitter/tree-sitter)
