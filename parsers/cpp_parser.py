@@ -13,21 +13,24 @@ class CppParser(CallParser):
             """)
     call_q = language_library.query("""
             (call_expression) @call
-            (declaration
-                declarator: (init_declarator) @call)
             """)
     
     def get_call_print(self,call):
         callf = call.child_by_field_name('function')
         name = ''
-        if callf.type == 'identifier':
-            name = self.node_to_string(callf)
-        elif callf.type == 'qualified_identifier':
-            name = self.node_to_string(callf.child_by_field_name('name'))
-        else:
-            name = self.node_to_string(callf.child_by_field_name('field'))
+        try:
+            if callf.type == 'identifier':
+                name = self.node_to_string(callf)
+            elif callf.type == 'qualified_identifier':
+                name = self.node_to_string(callf.child_by_field_name('name'))
+            else:
+                name = self.node_to_string(callf.child_by_field_name('field'))
+        except:
+            print(call)
+            if call.type == 'init_declarator':
+                print(self.node_to_string(call))
         nargs = (len(call.child_by_field_name('arguments').children) - 1)//2
-        return (name.split('<')[0],None)
+        return (name.split('<')[0], nargs)
         
 
     def get_method_print(self, method):
