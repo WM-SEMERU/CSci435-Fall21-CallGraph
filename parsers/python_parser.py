@@ -16,7 +16,6 @@ class PythonParser(CallParser):
             """)
     call_q = language_library.query("""
             (call) @call
-            (lambda) @call
             """)
 
     def get_call_print(self, node):
@@ -28,7 +27,6 @@ class PythonParser(CallParser):
             name = None
         # gets the number of arguments passed to the method
         nargs = (len(node.child_by_field_name('arguments').children) - 1) // 2
-        print(name)
         return (name, nargs)
     
     def get_method_print(self, method):

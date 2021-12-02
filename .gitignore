@@ -2,3 +2,4 @@
 build/
 vendor/
 __pycache__
+output/

@@ -34,8 +34,10 @@ def main(argv):
     output = args.output
     if output == None:
         output = os.path.split(path)[1].split('.')[0]
-    method_df.to_csv(output + '_method.csv')
-    edge_df.to_csv(output + '_edge.csv')
+    if not os.path.exists("output"):
+        os.mkdir("output")
+    method_df.to_csv("output" + os.sep + "" + output + '_method.csv')
+    edge_df.to_csv("output" + os.sep + "" + output + '_edge.csv')
     
 
 if __name__ == '__main__':
