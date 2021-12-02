@@ -13,6 +13,7 @@ compare_method = None
 file_checker = False
 class TestCSV(unittest.TestCase):
 
+    file_checker = True if len(sys.argv) == 5 else False
 
     def setUp(self):
         self.method_df = pd.read_csv(method_file)
@@ -133,6 +134,7 @@ class TestCSV(unittest.TestCase):
         # replaces the "\n" in the method columns with spaces in order to compare the columns
         # the parser may strip extra '\n' compared to adding it yourself, so 
         # this is necessary when comparing methods
+
         def replace_dataframe_values(df):
             t = [None] * len(df)
             i = 0
@@ -145,7 +147,11 @@ class TestCSV(unittest.TestCase):
         # compare both csv here
         compare_method_df = pd.read_csv(compare_method)
         compare_df = replace_dataframe_values(compare_method_df)
+        compare_df = compare_df.drop([0,1])
         method_df = replace_dataframe_values(self.method_df)
+        method_df = method_df.drop([0,1])
+        print(compare_method_df)
+        print(self.method_df)
         if(method_df['method'].equals(compare_df['method'])):
             assert True
         else:
@@ -169,7 +175,7 @@ if __name__ == '__main__':
     # argv is popped out backwards
     # pop out the comparison files first
     # input should be python unit_test edge_file method_file compare_edge compare_method
-    if(file_checker == True):
+    if(len(sys.argv) == 5):
         compare_method = sys.argv.pop()
         compare_edge = sys.argv.pop()
 
