@@ -100,6 +100,21 @@ Finally add the path to the newly cloned grammar to the build_library command.
 ## Create Language Parser Class
 The ```parsers``` folder holds our language parser classes, which is responsible for holding all the language specific information. To add the new language create a new class and extend the CallParser class, located in the call_parser.py file. Each class must have fields to hold the language name, file extension, tree-sitter Language object, method_and_import query, and the call query. Queries are a way of interfacing with the tree-sitter library to grab all the instances of a certian tag in a given code block. For the method_and_import query. You need to find out what the languages calls its method definitions (it may treat constructors differently, see java for an example) and import statements and attach them to the method and import tags respectively. Likewise for the call queries you need to find out what the language calls method calls and if it treats constructor calls differently. To get this information you can paste an example file into the [tree-sitter playground](https://tree-sitter.github.io/tree-sitter/playground). For more information on queries, look at the [tree-sitter documentaion](https://tree-sitter.github.io/tree-sitter/using-parsers#query-syntax). The CallParser class has a few abstract methods that you will need to create and implement ```get_call_print(self, call)``` and ```get_method_print(self, method)```. You can view the comments in the call_parser.py to get more information on how to implement these methods. Note that depending on how the language handles imports you will need to override the ```get_import_file``` function (see cpp_parser.py). 
 
+## Add The New Class to parser_with_input.py
+Finally, in the ```parser_with_input.py``` file, add the language to the ```set_language``` method.
+```python
+    def set_language(language):
+        global lang
+        if language == 'python':
+            lang = parsers.PythonParser()
+        elif language == 'java':
+            lang = parsers.JavaParser()
+        elif language == 'cpp':
+            lang = parsers.CppParser()
+        elif language == 'c_sharp':
+            lang = parsers.C_sharpParser()
+```
+Now you can call the program as you would with any other language using the string you defined in the elif statement.
 
 # CSV Output Format
 Two csv files are outputted after parsing a file, directory, or repository. The first file with the ```_method.csv``` suffix matches each method declaration with an index. 
