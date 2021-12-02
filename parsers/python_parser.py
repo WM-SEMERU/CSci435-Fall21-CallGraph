@@ -26,8 +26,6 @@ class PythonParser(CallParser):
             name = self.node_to_string(func) if func.type == 'identifier' else self.node_to_string(func.child_by_field_name('attribute'))
         except Exception:
             name = None
-        if node.child_by_field_name('arguments') is None:
-            print(self.node_to_string(node))
         # gets the number of arguments passed to the method
         nargs = (len(node.child_by_field_name('arguments').children) - 1) // 2
         print(name)

@@ -121,6 +121,8 @@ def parse_repo(link) -> DataFrame:
             git.Repo.clone_from(link, repo_path)
         except Exception:
             exit_with_message(f"Given repository link {link} does not exist")
+    with open(".gitignore", "a") as f:
+        f.write(repo_path)
     return parse_directory(repo_path)
 
 def exit_with_message(message):
