@@ -7,11 +7,11 @@ def add_methods_and_imports():
     query = lang.method_import_q
     captures = query.captures(tree.root_node)
     ## adds all the method nodes to a list and all the method definition to a dictionary
-    cur_method_nodes = [node[0] for node in captures if node[1] == 'method']
+    cur_method_nodes = [n for n,i in enumerate(captures) if i[1] == 'method']
 
-    method_dict['method'].extend([lang.node_to_string(node) for node in cur_method_nodes])
-    method_dict['nodes'].extend(cur_method_nodes)
-    method_dict['prints'].extend([lang.get_method_print(node) for node in cur_method_nodes])
+    method_dict['method'].extend([lang.node_to_string(captures[node][0]) for node in cur_method_nodes])
+    method_dict['nodes'].extend([captures[node][0] for node in cur_method_nodes])
+    method_dict['prints'].extend([lang.get_method_print(captures[index+1][0], captures[index+2][0]) for index in cur_method_nodes])
     ## adds all files that the file imports to a list and the range of indexes in the method dictionary that point to that file
     import_nodes = [node[0] for node in captures if node[1] == 'import']
 
@@ -32,11 +32,12 @@ def add_edges():
         callee_index = index
 
         node = method_dict['nodes'][index]
-        calls = [call[0] for call in query.captures(node)]
+        captures = query.captures(node)
+        calls = [n for n,i in enumerate(captures) if i[1] == 'function']
         for call in calls:
             called_index = -1
-            call_line = call.start_point[0] - node.start_point[0]
-            call_name = lang.get_call_print(call)
+            call_line = captures[call][0].start_point[0] - node.start_point[0]
+            call_name = lang.get_call_print(captures[call+1][0], captures[call+2][0])
             for file in imports:
                 rang = file_dict[file][1]
                 for jindex in range(rang[0], rang[1]):
