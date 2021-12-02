@@ -141,6 +141,25 @@ The second file with the ```_edge.csv``` suffix has three columns. The first is 
 ...
 ```
 
+# Running the Test Cases 
+There are a number of test cases one can run to make sure that the CSV files have the desired call graphs. Moreover, you may add two additional files to test the output CSV against your expected CSV files line-by-line. In other words, if you have an idea of what the call graph should look like, you can use this as a method of comparing the output. 
+
+To run the test cases, use the following command: 
+```bash
+    python unit_test.py output_method.csv output_edge.csv
+```
+
+where ```unit_test.py``` is the unit test file, ```output_method.csv``` is the method CSV after parsing the file, and ```output_edge.csv``` is the edge CSV after parsing the file. 
+
+If you have CSV files that you would like to test line-by-line, then you may also run the test cases in the following manner:
+
+```bash
+    python unit_test.py output_method.csv output_edge.csv expected_method.csv expected_edge.csv
+```
+
+where ```expected_method.csv``` and ```expected_edge.csv``` are the method and edge CSVs, respectively, that you would like to compare with the output. 
+
+
 
 
 ## Resources
