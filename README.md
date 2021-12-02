@@ -30,19 +30,19 @@ The program supports multiple flags for files, directories, and repositories. Us
 
 ## Parsing a file
 ```bash
-    python parser_with_input.py python -f test.py
+    python driver.py python -f test.py
 ```
 Where ```test.py``` is the python or java file you want a call graph for. The call graph is then saved as ```test_method.csv``` and ```test_edge.csv```.
 
 ## Parsing a directory
 ```bash
-    python parser_with_input.py java -d /path/to/java/project -o java-graph
+    python driver.py java -d /path/to/java/project -o java-graph
 ```
 Where ```/path/to/java/project``` is the python or java project directory you want a call graph for. The call graph is then saved as ```java-graph_method.csv``` and ```java-graph_edge.csv```.
 
 ## Parsing a repository
 ```bash
-    python parser_with_input.py java -r https://github.com/username/project.git -o project
+    python driver.py java -r https://github.com/username/project.git -o project
 ```
 Where ```https://github.com/username/project.git``` is the python or java project repository you want a call graph for. The call graph is then saved as ```project_method.csv``` and ```project_edge.csv```.
 
