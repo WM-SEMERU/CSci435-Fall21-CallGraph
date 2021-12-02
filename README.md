@@ -15,23 +15,36 @@ First, clone our repository onto your local machine using:
 
 Then, make sure you have the latest version of tree-sitter's python library installed using:
 ```bash
-    pip install tree-sitter
+    pip install -r requirements.txt
 ```
 
-Our current working version will creeate call graphs for singular Python and Java files. So, for tree-sitter to parse the code you will need the grammars' for both Python and Java installed in the ```vendor``` folder.
+Our current working version will creeate call graphs for Python and Java files, directories, and git repositories. So, for tree-sitter to parse the code you will need the grammars' for both Python and Java installed in the ```vendor``` folder.
 This can be done by running the build_languages.py file with the following command:
 ```bash
-python build_languages.py
+    python build_languages.py
 ```
 This will create the ```build/``` directory and the ```my-languages.so``` file that tree-sitter uses to parse the languages.
 
 # Executing the code
+The program supports multiple flags for files, directories, and repositories. Use the ```-f``` or ```--file``` flags to parse a file. Use ```-d``` or ```--directory``` to parse a directory. Use the ```-r``` or ```--repository``` to parse a git repository. The ```-o``` or ```--output``` to name the output of the csv files. Make sure to tell the program which language you're parsing. 
 
-The the code can be executed using:
+## Parsing a file
 ```bash
-    python parser_with_input.py test.py > test.csv
+    python parser_with_input.py python -f test.py
 ```
-Where ```test.py``` is the python or java file you want a call graph for. The call graph is then saved as ```test.csv```
+Where ```test.py``` is the python or java file you want a call graph for. The call graph is then saved as ```test_method.csv``` and ```test_edge.csv```.
+
+## Parsing a directory
+```bash
+    python parser_with_input.py java -d /path/to/java/project -o java-graph
+```
+Where ```/path/to/java/project``` is the python or java project directory you want a call graph for. The call graph is then saved as ```java-graph_method.csv``` and ```java-graph_edge.csv```.
+
+## Parsing a repository
+```bash
+    python parser_with_input.py java -r https://github.com/username/project.git -o project
+```
+Where ```https://github.com/username/project.git``` is the python or java project repository you want a call graph for. The call graph is then saved as ```project_method.csv``` and ```project_edge.csv```.
 
 ## Resources
 
