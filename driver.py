@@ -26,9 +26,6 @@ def main(argv):
         method_df, edge_df = parser_with_input.parse_directory(args.directory)
     elif args.repository is not None:
         path = args.repository
-        with open(".gitignore", "a") as f:
-            if not os.path.exists(path):
-                f.write(path)
         method_df, edge_df = parser_with_input.parse_repo(args.repository)
     else:
         print("No File, Directory, or Repository passed as argument. Exiting...")
