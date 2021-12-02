@@ -30,19 +30,19 @@ The program supports multiple flags for files, directories, and repositories. Us
 
 ## Parsing a file
 ```bash
-    python parser_with_input.py python -f test.py
+    python driver.py python -f test.py
 ```
 Where ```test.py``` is the python or java file you want a call graph for. The call graph is then saved as ```test_method.csv``` and ```test_edge.csv```.
 
 ## Parsing a directory
 ```bash
-    python parser_with_input.py java -d /path/to/java/project -o java-graph
+    python driver.py java -d /path/to/java/project -o java-graph
 ```
 Where ```/path/to/java/project``` is the python or java project directory you want a call graph for. The call graph is then saved as ```java-graph_method.csv``` and ```java-graph_edge.csv```.
 
 ## Parsing a repository
 ```bash
-    python parser_with_input.py java -r https://github.com/username/project.git -o project
+    python driver.py java -r https://github.com/username/project.git -o project
 ```
 Where ```https://github.com/username/project.git``` is the python or java project repository you want a call graph for. The call graph is then saved as ```project_method.csv``` and ```project_edge.csv```.
 
@@ -99,6 +99,34 @@ Finally add the path to the newly cloned grammar to the build_library command.
 
 ## Create Language Parser Class
 The ```parsers``` folder holds our language parser classes, which is responsible for holding all the language specific information. To add the new language create a new class and extend the CallParser class, located in the call_parser.py file. Each class must have fields to hold the language name, file extension, tree-sitter Language object, method_and_import query, and the call query. Queries are a way of interfacing with the tree-sitter library to grab all the instances of a certian tag in a given code block. For the method_and_import query. You need to find out what the languages calls its method definitions (it may treat constructors differently, see java for an example) and import statements and attach them to the method and import tags respectively. Likewise for the call queries you need to find out what the language calls method calls and if it treats constructor calls differently. To get this information you can paste an example file into the [tree-sitter playground](https://tree-sitter.github.io/tree-sitter/playground). For more information on queries, look at the [tree-sitter documentaion](https://tree-sitter.github.io/tree-sitter/using-parsers#query-syntax). The CallParser class has a few abstract methods that you will need to create and implement ```get_call_print(self, call)``` and ```get_method_print(self, method)```. You can view the comments in the call_parser.py to get more information on how to implement these methods. Note that depending on how the language handles imports you will need to override the ```get_import_file``` function (see cpp_parser.py). 
+
+
+# CSV Output Format
+Two csv files are outputted after parsing a file, directory, or repository. The first file with the ```_method.csv``` suffix matches each method declaration with an index. 
+```
+	method
+0	"def __init__(self, brand, model, type):
+        self.brand = brand
+        self.model = model
+        self.type = type
+        self.gas_tank_size = 14
+        self.fuel_level = 0"
+1	"def fuel_up(self):
+        self.fuel_level = self.gas_tank_size
+        print('Gas tank is now full.')
+        self.read_to_drive()"
+...
+```
+The second file with the ```_edge.csv``` suffix has three columns. The first is callee_index, which contains the indices of the methods (found in the method.csv) that are making the calls. The second column, called_index, contains the indices of the methods that are being called. The third column, call_line, gives the line numbers where the called_index methods are called inside of the callee_index methods.
+
+```
+	callee_index	called_index	call_line
+0	    1	               3	         3
+1	    3	               2	         2
+...
+```
+
+
 
 ## Resources
 
