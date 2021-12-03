@@ -19,7 +19,7 @@ def main():
         git.Repo.clone_from("https://github.com/tree-sitter/tree-sitter-cpp", repository_path)
 
     Language.build_library(
-    'build/my-languages.so',
+    os.path.join(path, 'build/my-languages.so'),
     [
         'vendor/tree-sitter-python',
         'vendor/tree-sitter-java',
