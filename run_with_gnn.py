@@ -4,22 +4,17 @@ import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn import Linear
 from torch_cluster import random_walk
 from sklearn.linear_model import LogisticRegression
 import pandas as pd
-from torch_geometric.data import InMemoryDataset
 from torch_geometric.data import Data
-from sklearn.model_selection import train_test_split
 
-import torch_geometric.transforms as T
 from torch_geometric.nn import SAGEConv
-from torch_geometric.datasets import Planetoid
 from torch_geometric.loader import NeighborSampler as RawNeighborSampler
 
 EPS = 1e-15
 
-dataFrame = pd.read_csv('javaOutputTest2_edge.csv')
+dataFrame = pd.read_csv('pythonTestOutput_edge.csv')
 dataFrame.pop('Unnamed: 0')
 print(dataFrame)
 
@@ -28,15 +23,23 @@ for val in dataFrame['call_line']:
   callLine.append([val])
 
 edgeIndex = torch.tensor([dataFrame['called_index'], dataFrame['callee_index']], dtype=torch.long)
-x = torch.tensor(callLine, dtype=torch.float)
-y = torch.tensor(callLine, dtype=torch.float)
+#Don't need x and y
+# x = torch.tensor(callLine, dtype=torch.float)
+# y = torch.tensor(callLine, dtype=torch.float)
+# need to change to graph sage - the neural network model (right now neural network perceptron - swap out)
+# neighborhood sampler
+# don't need val_mask, train_mask, test_mask
+# make x a random number - torch.rand - create a bunch of random numbers for num of nodes
+# second dimension how many features for each node for random number other option
+# pass in randomly generated x and edge_index
+# only want loss - nothing about accuracy
 
-data = Data(x=x, edge_index=edgeIndex.t().contiguous(), y=y, val_mask=2, train_mask=2, test_mask=2)
-data.num_nodes = dataFrame.shape[0]
-data.num_classes = 1
+x = torch.rand(dataFrame.shape[0], dataFrame.shape[1])
 
-print(data)
-print(edgeIndex)
+data = Data(x=x, edge_index=edgeIndex.t().contiguous())
+# data.num_nodes = dataFrame.shape[0]
+# data.num_classes = 1
+
 
 %matplotlib inline
 import matplotlib.pyplot as plt
@@ -55,51 +58,102 @@ def visualize(h, color):
     plt.show()
 
 
-class MLP(torch.nn.Module):
-    def __init__(self, hidden_channels):
-        super(MLP, self).__init__()
-        torch.manual_seed(12345)
-        self.lin1 = Linear(data.num_features, hidden_channels)
-        self.lin2 = Linear(hidden_channels, data.num_classes)
+class NeighborSampler(RawNeighborSampler):
+    def sample(self, batch):
+        batch = torch.tensor(batch)
+        row, col, _ = self.adj_t.coo()
 
-    def forward(self, x):
-        x = self.lin1(x)
-        x = x.relu()
-        x = F.dropout(x, p=0.5, training=self.training)
-        x = self.lin2(x)
+        # For each node in `batch`, we sample a direct neighbor (as positive
+        # example) and a random node (as negative example):
+        pos_batch = random_walk(row, col, batch, walk_length=1,
+                                coalesced=False)[:, 1]
+
+        neg_batch = torch.randint(0, self.adj_t.size(1), (batch.numel(), ),
+                                  dtype=torch.long)
+
+        batch = torch.cat([batch, pos_batch, neg_batch], dim=0)
+        return super(NeighborSampler, self).sample(batch)
+
+
+train_loader = NeighborSampler(data.edge_index, sizes=[10, 10], batch_size=256,
+                               shuffle=True, num_nodes=data.num_nodes)
+
+
+class SAGE(nn.Module):
+    def __init__(self, in_channels, hidden_channels, num_layers):
+        super(SAGE, self).__init__()
+        self.num_layers = num_layers
+        self.convs = nn.ModuleList()
+        for i in range(num_layers):
+            in_channels = in_channels if i == 0 else hidden_channels
+            self.convs.append(SAGEConv(in_channels, hidden_channels))
+
+    def forward(self, x, adjs):
+        # print('here')
+        for i, (edge_index, _, size) in enumerate(adjs):
+            x_target = x[:size[1]]  # Target nodes are always placed first.
+            # print(x_target)
+            x = self.convs[i]((x, x_target), edge_index)
+            if i != self.num_layers - 1:
+                x = x.relu()
+                x = F.dropout(x, p=0.5, training=self.training)
+        return x
+
+    def full_forward(self, x, edge_index):
+        for i, conv in enumerate(self.convs):
+            x = conv(x, edge_index)
+            if i != self.num_layers - 1:
+                x = x.relu()
+                x = F.dropout(x, p=0.5, training=self.training)
         return x
 
 
-# from IPython.display import Javascript  # Restrict height of output cell.
-# display(Javascript('''google.colab.output.setIframeHeight(0, true, {maxHeight: 300})'''))
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = SAGE(data.num_node_features, hidden_channels=64, num_layers=2)
+model = model.to(device)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+x, edge_index = data.x.to(device), data.edge_index.to(device)
 
-model = MLP(hidden_channels=16)
-criterion = torch.nn.CrossEntropyLoss()  # Define loss criterion.
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)  # Define optimizer.
 
 def train():
-      model.train()
-      optimizer.zero_grad()  # Clear gradients.
-      out = model(data.x)  # Perform a single forward pass.
-      loss = criterion(out, data.y)  # Compute the loss solely based on the training nodes.
-      loss.backward()  # Derive gradients.
-      optimizer.step()  # Update parameters based on gradients.
-      return loss
+    model.train()
 
+    total_loss = 0
+    for batch_size, n_id, adjs in train_loader:
+        # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
+        adjs = [adj.to(device) for adj in adjs]
+        optimizer.zero_grad()
+
+        out = model(x[n_id], adjs)
+        out, pos_out, neg_out = out.split(out.size(0) // 3, dim=0)
+
+        pos_loss = F.logsigmoid((out * pos_out).sum(-1)).mean()
+        neg_loss = F.logsigmoid(-(out * neg_out).sum(-1)).mean()
+        loss = -pos_loss - neg_loss
+        loss.backward()
+        optimizer.step()
+
+        total_loss += float(loss) * out.size(0)
+
+    return total_loss / data.num_nodes
+
+
+@torch.no_grad()
 def test():
-      model.eval()
-      out = model(data.x)
-      pred = out.argmax(dim=1)  # Use the class with highest probability.
-      test_correct = pred[data.test_mask] == data.y[data.test_mask]  # Check against ground-truth labels.
-      test_acc = int(test_correct.sum()) / int(data.test_mask.sum())  # Derive ratio of correct predictions.
-      return test_acc
+    model.eval()
+    out = model.full_forward(x, edge_index).cpu()
 
-for epoch in range(1, 201):
+    clf = LogisticRegression()
+    clf.fit(out[data.train_mask], data.y[data.train_mask])
+
+    val_acc = clf.score(out[data.val_mask], data.y[data.val_mask])
+    test_acc = clf.score(out[data.test_mask], data.y[data.test_mask])
+
+    return val_acc, test_acc
+
+
+for epoch in range(1, 51):
     loss = train()
-    print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}')
-
-# test_acc = test()
-# print(f'Test Accuracy: {test_acc:.4f}')
-
-# out = model(data.x, data.edge_index)
-# visualize(out, color=data.y)
+    # val_acc, test_acc = test()
+    print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}, ')
+          # f'Val: {val_acc:.4f}, Test: {test_acc:.4f}')
