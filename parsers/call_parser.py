@@ -71,6 +71,6 @@ class CallParser():
         pass
 
     @abstractmethod
-    def get_import_file(self, imp):
+    def get_import_file(self, imp) -> str:
         file_to_search = self.node_to_string(imp)
         return file_to_search.replace(".", os.sep) + self.extension

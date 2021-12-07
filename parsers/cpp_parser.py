@@ -36,17 +36,20 @@ class CppParser(CallParser):
             ]) @function
             """)
     
-    def get_call_print(self,name_node,arg_node):
+    def get_call_print(self,name_node,arg_node) -> tuple:
         name = self.node_to_string(name_node)
         nargs = (len(arg_node.children) - 1)//2
         return (name,nargs)
         
 
-    def get_method_print(self, name_node,param_node):
+    def get_method_print(self, name_node,param_node) -> tuple:
         name = self.node_to_string(name_node)
         nparams = (len(param_node.children) - 1)//2
+        for child in param_node.children:
+            if self.node_to_string(child) == 'void':
+                return (name, 0)
         return (name, nparams)
 
-    def get_import_file(self, imp):
+    def get_import_file(self, imp) -> str:
         file_to_search = self.node_to_string(imp)
         return file_to_search[1:-1]
