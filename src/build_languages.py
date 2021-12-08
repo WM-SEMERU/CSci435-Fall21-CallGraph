@@ -21,9 +21,9 @@ def main():
     Language.build_library(
     os.path.join(path, 'build/my-languages.so'),
     [
-        'vendor/tree-sitter-python',
-        'vendor/tree-sitter-java',
-        'vendor/tree-sitter-cpp'
+        os.path.join(path, 'vendor/tree-sitter-python'),
+        os.path.join(path, 'vendor/tree-sitter-java'),
+        os.path.join(path, 'vendor/tree-sitter-cpp')
     ]
     )
 
