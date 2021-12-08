@@ -1,55 +1,31 @@
 import os.path as osp
 import sys
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch_cluster import random_walk
-from sklearn.linear_model import LogisticRegression
 import pandas as pd
 from torch_geometric.data import Data
-
 from torch_geometric.nn import SAGEConv
 from torch_geometric.loader import NeighborSampler as RawNeighborSampler
-
-EPS = 1e-15
-
-dataFrame = pd.read_csv('pythonTestOutput_edge.csv')
-dataFrame.pop('Unnamed: 0')
-print(dataFrame)
-
-callLine = []
-for val in dataFrame['call_line']:
-  callLine.append([val])
-
-edgeIndex = torch.tensor([dataFrame['called_index'], dataFrame['callee_index']], dtype=torch.long)
-#Don't need x and y
-# x = torch.tensor(callLine, dtype=torch.float)
-# y = torch.tensor(callLine, dtype=torch.float)
-# need to change to graph sage - the neural network model (right now neural network perceptron - swap out)
-# neighborhood sampler
-# don't need val_mask, train_mask, test_mask
-# make x a random number - torch.rand - create a bunch of random numbers for num of nodes
-# second dimension how many features for each node for random number other option
-# pass in randomly generated x and edge_index
-# only want loss - nothing about accuracy
-
-x = torch.rand(dataFrame.shape[0], dataFrame.shape[1])
-
-data = Data(x=x, edge_index=edgeIndex.t().contiguous())
-# data.num_nodes = dataFrame.shape[0]
-# data.num_classes = 1
-
-
 %matplotlib inline
 import matplotlib.pyplot as plt
 import numpy
 from sklearn.manifold import TSNE
 
+EPS = 1e-15
+
+dataFrame = pd.read_csv(sys.argv[1])
+dataFrame.pop('Unnamed: 0')
+
+
+edgeIndex = torch.tensor([dataFrame['called_index'], dataFrame['callee_index']], dtype=torch.long)
+x = torch.rand(dataFrame.shape[0]+1, dataFrame.shape[0], dtype=torch.float)
+data = Data(x=x, edge_index=edgeIndex.t().contiguous())
+
+
 def visualize(h, color):
-    print(h)
     z = TSNE(n_components=2).fit_transform(h.detach().cpu().numpy())
-    print(z)
     plt.figure(figsize=(10,10))
     plt.xticks([])
     plt.yticks([])
@@ -89,10 +65,8 @@ class SAGE(nn.Module):
             self.convs.append(SAGEConv(in_channels, hidden_channels))
 
     def forward(self, x, adjs):
-        # print('here')
         for i, (edge_index, _, size) in enumerate(adjs):
             x_target = x[:size[1]]  # Target nodes are always placed first.
-            # print(x_target)
             x = self.convs[i]((x, x_target), edge_index)
             if i != self.num_layers - 1:
                 x = x.relu()
@@ -138,22 +112,9 @@ def train():
     return total_loss / data.num_nodes
 
 
-@torch.no_grad()
-def test():
-    model.eval()
-    out = model.full_forward(x, edge_index).cpu()
-
-    clf = LogisticRegression()
-    clf.fit(out[data.train_mask], data.y[data.train_mask])
-
-    val_acc = clf.score(out[data.val_mask], data.y[data.val_mask])
-    test_acc = clf.score(out[data.test_mask], data.y[data.test_mask])
-
-    return val_acc, test_acc
-
-
 for epoch in range(1, 51):
     loss = train()
-    # val_acc, test_acc = test()
     print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}, ')
-          # f'Val: {val_acc:.4f}, Test: {test_acc:.4f}')
+
+out = model.full_forward(x, edgeIndex).cpu()
+visualize(out, 'blue')
