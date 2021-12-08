@@ -27,6 +27,11 @@ class JavaParser(CallParser):
             (object_creation_expression
                 type: (type_identifier) @function_name
                 arguments: (argument_list) @arguments) @function
+            (variable_declarator
+                name: (identifier) @function_name
+                value: (lambda_expression
+                    parameters: (inferred_parameters) @arguments)
+            ) @function
             """)
 
     def get_call_print(self, name_node, arg_node) -> tuple:
@@ -38,6 +43,8 @@ class JavaParser(CallParser):
     
     def get_method_print(self, name_node, param_node) -> tuple:
         name = self.node_to_string(name_node)
+        if param_node is None:
+            return (name, 0)
         nparams = (len(param_node.children) - 1) // 2
         for child in param_node.children:
             if self.node_to_string(child) == 'void':

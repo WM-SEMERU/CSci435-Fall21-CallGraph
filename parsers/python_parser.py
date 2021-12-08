@@ -24,6 +24,11 @@ class PythonParser(CallParser):
                     attribute: (identifier) @function_name)
                 ]
                 arguments: (argument_list) @arguments) @function
+            (assignment
+                left: (identifier) @function_name
+                right: (lambda
+                    parameters: (lambda_parameters) @arguments)
+            ) @function
             """)
 
     def get_call_print(self, name_node, arg_node) -> tuple:

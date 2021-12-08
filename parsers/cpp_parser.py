@@ -34,6 +34,12 @@ class CppParser(CallParser):
                         declarator: (identifier) @function_name
                         parameters: (parameter_list) @arguments)
             ]) @function
+            (assignment_expression
+                left: (identifier) @function_name
+                right: (lambda_expression
+                    declarator: (abstract_function_declarator
+                        parameters: (parameter_list) @arguments))
+            ) @function
             """)
     
     def get_call_print(self,name_node,arg_node) -> tuple:
