@@ -1,0 +1,13 @@
+﻿,method
+0,"def hello_world_caller():
+    print_hello_world()"
+1,"def print_hello_world():
+    print(""Hello World."")"
+2,"def increment_value(value):
+    value += 1
+    print(value)
+    return value"
+3,"def main():
+    print_hello_world()
+    increment_value(value)
+"
