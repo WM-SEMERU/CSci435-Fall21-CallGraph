@@ -1,3 +1,4 @@
+import os
 from abc import ABC, abstractmethod
 import os
 class CallParser():
@@ -68,7 +69,7 @@ class CallParser():
     for example implementations and use https://tree-sitter.github.io/tree-sitter/playground to view the structre of 
     a call node in the desired language"""
     @abstractmethod
-    def get_call_print(self, call) -> tuple:
+    def get_call_print(self, name_node, arg_node) -> tuple:
         pass
     
     """Takes in a method node and returns a tuple of the name of the method and the number of parameters passed for example, 
@@ -76,7 +77,7 @@ class CallParser():
     for an example implementation, and use https://tree-sitter.github.io/tree-sitter/playground to view the structre of 
     a method call in the desired language"""
     @abstractmethod
-    def get_method_print(self, method) -> tuple:
+    def get_method_print(self, name_node, param_node) -> tuple:
         pass
 
     """Takes in an import node and returns the path of the file that is imported

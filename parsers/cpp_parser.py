@@ -7,37 +7,55 @@ class CppParser(CallParser):
     PARSER = Parser()
     PARSER.set_language(language_library)
     method_import_q = language_library.query("""
-            (function_definition) @method
+            (function_definition
+                declarator: (function_declarator
+                    declarator: (identifier) @method_name
+                    parameters: (parameter_list) @method_params)) @method
             (preproc_include
                 path: (string_literal) @import)
             """)
     call_q = language_library.query("""
-            (call_expression) @call
+            (call_expression
+                function: [
+                    (qualified_identifier
+                        name: (identifier) @function_name)
+                    (identifier) @function_name
+                    (field_expression
+                        field: (field_identifier) @function_name)]
+                arguments: (argument_list) @arguments
+            ) @function
+            (declaration
+                type: (type_identifier) @function_name
+                declarator: [
+                    (init_declarator
+                        declarator: (identifier) @function_name
+                        value: (argument_list) @arguments)
+                    (function_declarator 
+                        declarator: (identifier) @function_name
+                        parameters: (parameter_list) @arguments)
+            ]) @function
+            (assignment_expression
+                left: (identifier) @function_name
+                right: (lambda_expression
+                    declarator: (abstract_function_declarator
+                        parameters: (parameter_list) @arguments))
+            ) @function
             """)
     
-    def get_call_print(self,call):
-        callf = call.child_by_field_name('function')
-        name = ''
-        try:
-            if callf.type == 'identifier':
-                name = self.node_to_string(callf)
-            elif callf.type == 'qualified_identifier':
-                name = self.node_to_string(callf.child_by_field_name('name'))
-            else:
-                name = self.node_to_string(callf.child_by_field_name('field'))
-        except:
-            print(call)
-            if call.type == 'init_declarator':
-                print(self.node_to_string(call))
-        nargs = (len(call.child_by_field_name('arguments').children) - 1)//2
-        return (name.split('<')[0], nargs)
+    def get_call_print(self,name_node,arg_node) -> tuple:
+        name = self.node_to_string(name_node)
+        nargs = (len(arg_node.children) - 1)//2
+        return (name,nargs)
         
 
-    def get_method_print(self, method):
-        name = self.node_to_string(method.child_by_field_name('declarator')).split('(')[0]
-        nparams = (len(method.child_by_field_name('declarator').child_by_field_name('parameters').children) - 1)//2
+    def get_method_print(self, name_node,param_node) -> tuple:
+        name = self.node_to_string(name_node)
+        nparams = (len(param_node.children) - 1)//2
+        for child in param_node.children:
+            if self.node_to_string(child) == 'void':
+                return (name, 0)
         return (name, nparams)
 
-    def get_import_file(self, imp):
-        file_to_search = self.node_to_string(imp).strip('\"')
-        return file_to_search
+    def get_import_file(self, imp) -> str:
+        file_to_search = self.node_to_string(imp)
+        return file_to_search[1:-1]
