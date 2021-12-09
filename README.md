@@ -100,6 +100,21 @@ Finally add the path to the newly cloned grammar to the build_library command.
 ## Create Language Parser Class
 The ```parsers``` folder holds our language parser classes, which is responsible for holding all the language specific information. To add the new language create a new class and extend the CallParser class, located in the call_parser.py file. Each class must have fields to hold the language name, file extension, tree-sitter Language object, method_and_import query, and the call query. Queries are a way of interfacing with the tree-sitter library to grab all the instances of a certian tag in a given code block. For the method_and_import query. You need to find out what the languages calls its method definitions (it may treat constructors differently, see java for an example) and import statements and attach them to the method and import tags respectively. Likewise for the call queries you need to find out what the language calls method calls and if it treats constructor calls differently. To get this information you can paste an example file into the [tree-sitter playground](https://tree-sitter.github.io/tree-sitter/playground). For more information on queries, look at the [tree-sitter documentaion](https://tree-sitter.github.io/tree-sitter/using-parsers#query-syntax). The CallParser class has a few abstract methods that you will need to create and implement ```get_call_print(self, call)``` and ```get_method_print(self, method)```. You can view the comments in the call_parser.py to get more information on how to implement these methods. Note that depending on how the language handles imports you will need to override the ```get_import_file``` function (see cpp_parser.py). 
 
+## Add The New Class to graph_generator.py
+Finally, in the ```graph_generator.py``` file, add the language to the ```set_language``` method.
+```python
+    def set_language(language):
+        global lang
+        if language == 'python':
+            lang = parsers.PythonParser()
+        elif language == 'java':
+            lang = parsers.JavaParser()
+        elif language == 'cpp':
+            lang = parsers.CppParser()
+        elif language == 'c_sharp':
+            lang = parsers.C_sharpParser()
+```
+Now you can call the program as you would with any other language using the string you defined in the elif statement.
 
 # CSV Output Format
 Two csv files are outputted after parsing a file, directory, or repository. The first file with the ```_method.csv``` suffix matches each method declaration with an index. 
@@ -125,6 +140,25 @@ The second file with the ```_edge.csv``` suffix has three columns. The first is 
 1	    3	               2	         2
 ...
 ```
+
+# Running the Test Cases 
+There are a number of test cases one can run to make sure that the CSV files have the desired call graphs. Moreover, you may add two additional files to test the output CSV against your expected CSV files line-by-line. In other words, if you have an idea of what the call graph should look like, you can use this as a method of comparing the output. 
+
+To run the test cases, use the following command: 
+```bash
+    python unit_test.py output_method.csv output_edge.csv
+```
+
+where ```unit_test.py``` is the unit test file, ```output_method.csv``` is the method CSV after parsing the file, and ```output_edge.csv``` is the edge CSV after parsing the file. 
+
+If you have CSV files that you would like to test line-by-line, then you may also run the test cases in the following manner:
+
+```bash
+    python unit_test.py output_method.csv output_edge.csv expected_method.csv expected_edge.csv
+```
+
+where ```expected_method.csv``` and ```expected_edge.csv``` are the method and edge CSVs, respectively, that you would like to compare with the output. 
+
 
 
 
