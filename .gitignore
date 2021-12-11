@@ -3,3 +3,5 @@ build/
 vendor/
 __pycache__
 output/
+dist/
+CallGraph.egg-info

@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-    name='call_graphs_with_gnn',
+    name='CallGraph',
     version='0.1.0',
     author='Call Graph',
     author_email='nacooper01@email.wm.edu',
@@ -15,7 +15,7 @@ setuptools.setup(
         'pandas >= 1.3.3',
         'gitpython >= 3.1.24'
     ],
-	packages=['call_graphs_with_gnn'],
+	packages=['CallGraph'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
