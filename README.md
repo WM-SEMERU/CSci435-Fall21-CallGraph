@@ -159,9 +159,37 @@ If you have CSV files that you would like to test line-by-line, then you may als
 
 where ```expected_method.csv``` and ```expected_edge.csv``` are the method and edge CSVs, respectively, that you would like to compare with the output. 
 
+## Uploading to test PyPI
+In order to upload the project to test PyPI, make sure you have the setuptools, wheel, and twine pip packages installed and up-to-date with these commands:
 
+To install the packages:
+```bash
+    pip install setuptools wheel twine
+```
 
+To update the packages:
+```bash
+    pip install -U setuptools wheel twine
+```
 
+Once this is done, create a source distribution of the project
+```bash 
+    python setup.py sdist
+```
+
+This command should create a folder named dist in the directory with a file in it named ```CallGraph-<verion_number>.tar.gz```.
+After this, create a wheel distribution as well:
+```bash
+    python setup.py bdist_wheel --universal
+```
+
+This should add an additional file to the ```dist``` folder ending in the ```.whl``` file extension.
+With these two files created, upload the distributions to test PyPI with the following command:
+```bash
+    twine upload --repository testpypi dist/*
+```
+
+To check if the project uploaded, go to the [TestPyPI website](https://test.pypi.org/) and search for CallGraph. You should find a recently uploaded one there.
 ## Resources
 
 - [Tree-Sitter Programming Language Parser](https://github.com/tree-sitter/tree-sitter)
