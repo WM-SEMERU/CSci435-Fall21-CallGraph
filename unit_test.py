@@ -19,6 +19,7 @@ class TestCSV(unittest.TestCase):
     def setUp(self):
         self.method_df = pd.read_csv(method_file)
         self.edge_df = pd.read_csv(edge_file)
+        print(file_checker)
         #print(self.method_df)
     
     # checks that the method file passed in has the file extension csv
