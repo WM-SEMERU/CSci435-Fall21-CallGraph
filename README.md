@@ -159,6 +159,23 @@ If you have CSV files that you would like to test line-by-line, then you may als
 
 where ```expected_method.csv``` and ```expected_edge.csv``` are the method and edge CSVs, respectively, that you would like to compare with the output. 
 
+# Calls Tested in Test Suite
+
+We have a set of test files that tests different corner cases for the parser. Here are what each test file looks at: 
+
+* '''basic_test.py''' - Python file for simple function calls
+* '''test.py''' - Python file for a basic class with function calls 
+* '''test_2.py''' - Python file for repository level code - has a variety of calls (source: https://github.com/AtsushiSakai/PythonRobotics/blob/master/PathPlanning/HybridAStar/hybrid_a_star.py)
+* '''test_3.py''' - Python file that has calls from outside libraries 
+* '''inheritence.py''' - Python file for overloaded methods and classes that inherit from another
+* '''lambda_test.py''' - Python file for lambda/anonymous functions
+* '''lambda_test_2.py''' - Python file for lambda/anonymous functions
+* '''nested_functions.py''' - Python file for nested functions
+* '''test.java''' - Java file for a basic class with function calls
+* '''test_2.java''' - Java file for repository level code - has a variety of calls (source: https://github.com/Anuken/Mindustry/blob/master/core/src/mindustry/game/Universe.java)
+* '''test.cpp''' - C++ file for repository level codee - has a variety of calls (source: // source url: https://github.com/CoatiSoftware/Sourcetrail/blob/master/src/app/main.cpp)
+* '''vehicle_teest.cpp''' - C++ file for a basic class with function calls 
+
 ## Uploading to test PyPI
 In order to upload the project to test PyPI, make sure you have the setuptools, wheel, and twine pip packages installed and up-to-date with these commands:
 
