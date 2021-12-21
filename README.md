@@ -206,6 +206,33 @@ With these two files created, upload the distributions to test PyPI with the fol
     twine upload --repository testpypi dist/*
 ```
 
+# Graph Neural Networks (GNN)
+
+## Running Call Graph Data Through GNNS
+
+In order to run the call graph csv data through the GNNs, you first need to install the following packages:
+
+```
+pip install -q torch-scatter -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
+pip install -q torch-sparse -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
+pip install -q git+https://github.com/pyg-team/pytorch_geometric.git
+pip install -q torch-geometric
+pip install -q torch-cluster -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
+pip install -q torch-spline-conv -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
+```
+
+Once those are installed, the csv data can be run by the command:
+
+```
+python run_with_gnn.py output_edge.csv
+```
+using the output csv edge file that was created with the call graph generator. 
+* This code has only been run using google colab, there could be issues when trying to run it outside of google colab.
+
+## GNN Results
+
+GNNs were used in this project to help predict the links between nodes. They worked better with larger datasets, such as ones from respositories. One example of this is with the Python-Speech-Recognition repository. (https://github.com/Kalebu/Python-Speech-Recognition-.git) 
+
 To check if the project uploaded, go to the [TestPyPI website](https://test.pypi.org/) and search for CallGraph. You should find a recently uploaded one there.
 ## Resources
 
