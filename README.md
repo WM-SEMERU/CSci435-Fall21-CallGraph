@@ -174,7 +174,7 @@ We have a set of test files that tests different corner cases for the parser. He
 * ```test.java``` - Java file for a basic class with function calls
 * ```test_2.java``` - Java file for repository level code - has a variety of calls (source: https://github.com/Anuken/Mindustry/blob/master/core/src/mindustry/game/Universe.java)
 * ```test.cpp``` - C++ file for repository level codee - has a variety of calls (source: // source url: https://github.com/CoatiSoftware/Sourcetrail/blob/master/src/app/main.cpp)
-* ```vehicle_teest.cpp``` - C++ file for a basic class with function calls 
+* ```vehicle_test.cpp``` - C++ file for a basic class with function calls 
 
 ## Uploading to test PyPI
 In order to upload the project to test PyPI, make sure you have the setuptools, wheel, and twine pip packages installed and up-to-date with these commands:
