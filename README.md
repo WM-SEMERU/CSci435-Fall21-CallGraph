@@ -206,6 +206,8 @@ With these two files created, upload the distributions to test PyPI with the fol
     twine upload --repository testpypi dist/*
 ```
 
+To check if the project uploaded, go to the [TestPyPI website](https://test.pypi.org/) and search for CallGraph. You should find a recently uploaded one there.
+
 # Graph Neural Networks (GNN)
 
 ## Running Call Graph Data Through GNNS
@@ -227,34 +229,33 @@ Once those are installed, the csv data can be run by the command:
 python run_with_gnn.py output_edge.csv
 ```
 using the output csv edge file that was created with the call graph generator. 
-*Note this code has only been run using google colab, there could be issues when trying to run it outside of google colab.
-
-<img width="568" alt="Screen Shot 2021-12-21 at 3 23 21 PM" src="https://user-images.githubusercontent.com/60394844/146993371-1079fbad-e939-4773-8cc6-1026fd67de3a.png">
-<img width="564" alt="Screen Shot 2021-12-21 at 3 23 31 PM" src="https://user-images.githubusercontent.com/60394844/146993388-99510471-5521-43c1-8e0c-f1a0d82eeb7d.png">
-<img width="570" alt="Screen Shot 2021-12-21 at 3 23 38 PM" src="https://user-images.githubusercontent.com/60394844/146993591-fcf57410-7ea8-43b6-9e44-8ef306b23319.png">
-<img width="561" alt="Screen Shot 2021-12-21 at 3 23 46 PM" src="https://user-images.githubusercontent.com/60394844/146993598-d2a49c9c-ec5d-4a27-a6f0-042524e3112f.png">
-<img width="563" alt="Screen Shot 2021-12-21 at 3 23 52 PM" src="https://user-images.githubusercontent.com/60394844/146993604-a67d863b-6427-4caf-8e39-df8eae7424f2.png">
-<img width="566" alt="Screen Shot 2021-12-21 at 3 23 58 PM" src="https://user-images.githubusercontent.com/60394844/146993608-e77db1fe-e10a-45e0-abb9-f01c9c186d7c.png">
-<img width="562" alt="Screen Shot 2021-12-21 at 3 24 04 PM" src="https://user-images.githubusercontent.com/60394844/146993676-7d711039-3872-40f1-8d33-8b0ca5fb8383.png">
-<img width="566" alt="Screen Shot 2021-12-21 at 3 24 16 PM" src="https://user-images.githubusercontent.com/60394844/146993727-dd760e5d-8dca-444d-9962-320ba14df41f.png">
-<img width="564" alt="Screen Shot 2021-12-21 at 3 24 23 PM" src="https://user-images.githubusercontent.com/60394844/146993737-5c528a90-73ea-412f-872f-fdde1ce62fea.png">
-<img width="573" alt="Screen Shot 2021-12-21 at 3 38 07 PM" src="https://user-images.githubusercontent.com/60394844/146994572-52fac17d-c575-4fe7-9dfa-f54d912d3fa9.png">
-<img width="216" alt="Screen Shot 2021-12-21 at 3 25 04 PM" src="https://user-images.githubusercontent.com/60394844/146994294-1f317f01-7244-4e8a-8fbc-b4b19707b79e.png">
-<img width="213" alt="Screen Shot 2021-12-21 at 3 25 09 PM" src="https://user-images.githubusercontent.com/60394844/146994307-603a5b61-ef22-40ba-a0c4-910db968992f.png">
-<img width="224" alt="Screen Shot 2021-12-21 at 3 25 15 PM" src="https://user-images.githubusercontent.com/60394844/146993801-d0dc1ad2-98f3-4669-9b83-3172f4c89487.png">
-<img width="218" alt="Screen Shot 2021-12-21 at 3 25 21 PM" src="https://user-images.githubusercontent.com/60394844/146993806-dd501788-6267-4fc6-a791-5b15769cb9f0.png">
-<img width="220" alt="Screen Shot 2021-12-21 at 3 25 27 PM" src="https://user-images.githubusercontent.com/60394844/146993813-5106044b-f016-497b-89db-3ea6a30ce2cb.png">
-<img width="220" alt="Screen Shot 2021-12-21 at 3 25 33 PM" src="https://user-images.githubusercontent.com/60394844/146993826-7741c420-653b-43a6-88e6-1fb5e17da4b3.png">
-<img width="220" alt="Screen Shot 2021-12-21 at 3 25 39 PM" src="https://user-images.githubusercontent.com/60394844/146993837-a0291e42-eab3-4475-9bc0-f075997fe84b.png">
-<img width="217" alt="Screen Shot 2021-12-21 at 3 25 45 PM" src="https://user-images.githubusercontent.com/60394844/146993845-8b55cc62-f41c-47b3-8b0a-82533b857d4f.png">
-<img width="216" alt="Screen Shot 2021-12-21 at 3 25 51 PM" src="https://user-images.githubusercontent.com/60394844/146993854-1b8776ba-23ae-4235-8367-1e9d29b70009.png">
-<img width="218" alt="Screen Shot 2021-12-21 at 3 25 56 PM" src="https://user-images.githubusercontent.com/60394844/146993861-96dd1a88-e4cc-4cd7-a11c-35f91acfdf38.png">
+*Note this code has only been run using google colab, so there could be issues when trying to run it outside of google colab.
 
 ## GNN Results
 
-GNNs were used in this project to help predict the links between nodes. They worked better with larger datasets, such as ones from respositories. One example of this is with the Python-Speech-Recognition repository. (https://github.com/Kalebu/Python-Speech-Recognition-.git) 
+GNNs were used in this project to help predict the links between nodes. They worked better with larger datasets, such as ones from respositories. One example of this is with the Python-Speech-Recognition repository. (https://github.com/Kalebu/Python-Speech-Recognition-.git) The results from running the call graph for the Python-Speech-Recognition repository are below. With each epoch, the loss decreases, meaning the prediction error of the GNNs went down. Furthermore, the visualizations, which show the learned features of the nodes using t-SNE generated graphs, display how the data clustered together more and more as the number of epochs that had been run increased.
 
-To check if the project uploaded, go to the [TestPyPI website](https://test.pypi.org/) and search for CallGraph. You should find a recently uploaded one there.
+<img width="300" alt="Screen Shot 2021-12-21 at 3 23 21 PM" src="https://user-images.githubusercontent.com/60394844/146993371-1079fbad-e939-4773-8cc6-1026fd67de3a.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 04 PM" src="https://user-images.githubusercontent.com/60394844/146994294-1f317f01-7244-4e8a-8fbc-b4b19707b79e.png">
+
+<img width="300" alt="Screen Shot 2021-12-21 at 3 23 31 PM" src="https://user-images.githubusercontent.com/60394844/146993388-99510471-5521-43c1-8e0c-f1a0d82eeb7d.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 09 PM" src="https://user-images.githubusercontent.com/60394844/146994307-603a5b61-ef22-40ba-a0c4-910db968992f.png">
+
+<img width="300" alt="Screen Shot 2021-12-21 at 3 23 38 PM" src="https://user-images.githubusercontent.com/60394844/146993591-fcf57410-7ea8-43b6-9e44-8ef306b23319.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 15 PM" src="https://user-images.githubusercontent.com/60394844/146993801-d0dc1ad2-98f3-4669-9b83-3172f4c89487.png">
+
+<img width="300" alt="Screen Shot 2021-12-21 at 3 23 46 PM" src="https://user-images.githubusercontent.com/60394844/146993598-d2a49c9c-ec5d-4a27-a6f0-042524e3112f.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 21 PM" src="https://user-images.githubusercontent.com/60394844/146993806-dd501788-6267-4fc6-a791-5b15769cb9f0.png">
+
+<img width="300" alt="Screen Shot 2021-12-21 at 3 23 52 PM" src="https://user-images.githubusercontent.com/60394844/146993604-a67d863b-6427-4caf-8e39-df8eae7424f2.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 27 PM" src="https://user-images.githubusercontent.com/60394844/146993813-5106044b-f016-497b-89db-3ea6a30ce2cb.png">
+
+<img width="300" alt="Screen Shot 2021-12-21 at 3 23 58 PM" src="https://user-images.githubusercontent.com/60394844/146993608-e77db1fe-e10a-45e0-abb9-f01c9c186d7c.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 33 PM" src="https://user-images.githubusercontent.com/60394844/146993826-7741c420-653b-43a6-88e6-1fb5e17da4b3.png">
+
+<img width="300" alt="Screen Shot 2021-12-21 at 3 24 04 PM" src="https://user-images.githubusercontent.com/60394844/146993676-7d711039-3872-40f1-8d33-8b0ca5fb8383.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 39 PM" src="https://user-images.githubusercontent.com/60394844/146993837-a0291e42-eab3-4475-9bc0-f075997fe84b.png">
+
+<img width="300" alt="Screen Shot 2021-12-21 at 3 24 16 PM" src="https://user-images.githubusercontent.com/60394844/146993727-dd760e5d-8dca-444d-9962-320ba14df41f.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 45 PM" src="https://user-images.githubusercontent.com/60394844/146993845-8b55cc62-f41c-47b3-8b0a-82533b857d4f.png">
+
+<img width="300" alt="Screen Shot 2021-12-21 at 3 24 23 PM" src="https://user-images.githubusercontent.com/60394844/146993737-5c528a90-73ea-412f-872f-fdde1ce62fea.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 51 PM" src="https://user-images.githubusercontent.com/60394844/146993854-1b8776ba-23ae-4235-8367-1e9d29b70009.png">
+
+<img width="300" alt="Screen Shot 2021-12-21 at 3 38 07 PM" src="https://user-images.githubusercontent.com/60394844/146994572-52fac17d-c575-4fe7-9dfa-f54d912d3fa9.png"> <img width="300" alt="Screen Shot 2021-12-21 at 3 25 56 PM" src="https://user-images.githubusercontent.com/60394844/146993861-96dd1a88-e4cc-4cd7-a11c-35f91acfdf38.png">
+
+
 ## Resources
 
 - [Tree-Sitter Programming Language Parser](https://github.com/tree-sitter/tree-sitter)
