@@ -227,7 +227,10 @@ Once those are installed, the csv data can be run by the command:
 python run_with_gnn.py output_edge.csv
 ```
 using the output csv edge file that was created with the call graph generator. 
-* This code has only been run using google colab, there could be issues when trying to run it outside of google colab.
+*Note this code has only been run using google colab, there could be issues when trying to run it outside of google colab.
+
+<img width="568" alt="Screen Shot 2021-12-21 at 3 23 21 PM" src="https://user-images.githubusercontent.com/60394844/146993371-1079fbad-e939-4773-8cc6-1026fd67de3a.png">
+<img width="564" alt="Screen Shot 2021-12-21 at 3 23 31 PM" src="https://user-images.githubusercontent.com/60394844/146993388-99510471-5521-43c1-8e0c-f1a0d82eeb7d.png">
 
 ## GNN Results
 
