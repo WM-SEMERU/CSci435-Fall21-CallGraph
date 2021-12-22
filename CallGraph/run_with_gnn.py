@@ -15,15 +15,29 @@ from sklearn.manifold import TSNE
 
 EPS = 1e-15
 
+# Reads in csv file and get rid of unnesscary columnn in the data frame
 dataFrame = pd.read_csv(sys.argv[1])
 dataFrame.pop('Unnamed: 0')
 
-
+# Creates a list of indices between each of the edges that wiill go into a
+# graph that will be fed into a GNN, which in this case represents the link
+# between the methods and the methods that are called
 edgeIndex = torch.tensor([dataFrame['called_index'], dataFrame['callee_index']], dtype=torch.long)
-x = torch.rand(dataFrame.shape[0]+1, dataFrame.shape[0], dtype=torch.float)
+
+# Creates a list of random X values and makes sure that list is big enough
+# to provide a value for every node that exists between the edges in the edgeIndex
+maxCalledIndex = dataFrame['called_index'].max()
+maxCalleeIndex = dataFrame['callee_index'].max()
+maxIndex = max(maxCalledIndex, maxCalleeIndex)
+additionalXValues = maxIndex + 1 - dataFrame.shape[0]
+x = torch.rand(dataFrame.shape[0]+additionalXValues, dataFrame.shape[0], dtype=torch.float)
+
+# Creates a graph of the csv data frame that can be fed intoo the GNN
 data = Data(x=x, edge_index=edgeIndex.t().contiguous())
 
 
+# Visualizes the learned features of the nodes using
+# t-SNE generated graphs
 def visualize(h, color):
     z = TSNE(n_components=2).fit_transform(h.detach().cpu().numpy())
     plt.figure(figsize=(10,10))
@@ -33,7 +47,9 @@ def visualize(h, color):
     plt.scatter(z[:, 0], z[:, 1], s=70, c=color, cmap="Set2")
     plt.show()
 
-
+# This class outputs node embeddings for each node in the graph
+# that are dependent upon the neighborhood that the node is in
+# instead of looking at every node individually
 class NeighborSampler(RawNeighborSampler):
     def sample(self, batch):
         batch = torch.tensor(batch)
@@ -51,10 +67,14 @@ class NeighborSampler(RawNeighborSampler):
         return super(NeighborSampler, self).sample(batch)
 
 
+# Calls the NeighborSamples class to get node embeddings
 train_loader = NeighborSampler(data.edge_index, sizes=[10, 10], batch_size=256,
                                shuffle=True, num_nodes=data.num_nodes)
 
 
+# This class is the actual GNN model that is being
+# used and it trains on the input data and learns
+# how to predict links between the nodes
 class SAGE(nn.Module):
     def __init__(self, in_channels, hidden_channels, num_layers):
         super(SAGE, self).__init__()
@@ -89,6 +109,9 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 x, edge_index = data.x.to(device), data.edge_index.to(device)
 
 
+# Trains the GNN with the training data from the
+# train_loader and returns the total amount of loss, or
+# the prediction error of the GNN
 def train():
     model.train()
 
@@ -112,9 +135,12 @@ def train():
     return total_loss / data.num_nodes
 
 
-for epoch in range(1, 51):
+# Runs the data through the train function one hundred
+# times, printing out the loss for each epoch, and
+# creates a t-SNE graph to visualize the results after every 10 epochs
+for epoch in range(1, 101):
     loss = train()
     print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}, ')
-
-out = model.full_forward(x, edgeIndex).cpu()
-visualize(out, 'blue')
+    if epoch % 10 == 0:
+      out = model.full_forward(x, edgeIndex).cpu()
+      visualize(out, 'blue')

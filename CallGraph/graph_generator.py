@@ -71,8 +71,8 @@ def set_language(language):
         lang = parsers.PythonParser()
     elif language == 'java':
         lang = parsers.JavaParser()
-    elif language == 'cpp':
-        lang = parsers.CppParser()
+    # elif language == 'cpp':
+    #     lang = parsers.CppParser()
 
 def parse_file(path) -> DataFrame:
     reset_graph()
